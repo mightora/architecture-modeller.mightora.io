@@ -1,0 +1,10 @@
+node_modules/
+dist/
+__pycache__/
+*.pyc
+.DS_Store
+.openai/*.tar.gz
+vscode-extension/media/
+vscode-extension/LICENSE
+vscode-extension/THIRD-PARTY-NOTICES.md
+*.vsix

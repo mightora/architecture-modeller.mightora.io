@@ -1,0 +1,33 @@
+{
+  "name": "mightora-architecture-modeller",
+  "displayName": "Mightora Architecture Modeller",
+  "description": "Model architecture, dependencies, business processes, stakeholders and layers in desktop VS Code and VS Code for the Web.",
+  "publisher": "mightoraio",
+  "version": "0.4.0",
+  "license": "MIT",
+  "engines": { "vscode": "^1.95.0" },
+  "categories": ["Visualization", "Other"],
+  "keywords": ["architecture", "modelling", "dependencies", "RACI", "Power Platform"],
+  "repository": { "type":"git", "url":"https://github.com/mightora/architecture-modeller.mightora.io.git", "directory":"vscode-extension" },
+  "homepage": "https://architecture-modeller.mightora.io/",
+  "bugs": { "url":"https://github.com/mightora/architecture-modeller.mightora.io/issues" },
+  "icon": "media/icon.png",
+  "browser": "./extension.js",
+  "main": "./extension.js",
+  "extensionKind": ["ui", "workspace"],
+  "activationEvents": ["onCustomEditor:mightora.architectureModeller"],
+  "capabilities": { "virtualWorkspaces":true, "untrustedWorkspaces": { "supported":true } },
+  "contributes": {
+    "commands": [
+      { "command":"mightora.architecture.new", "title":"Mightora: New Architecture Model" },
+      { "command":"mightora.architecture.open", "title":"Mightora: Open Architecture Model" }
+    ],
+    "customEditors": [{
+      "viewType":"mightora.architectureModeller",
+      "displayName":"Mightora Architecture Modeller",
+      "selector":[{"filenamePattern":"*.architecture.json"},{"filenamePattern":"*.architecture.yaml"},{"filenamePattern":"*.architecture.yml"}],
+      "priority":"default"
+    }]
+  },
+  "scripts": { "vscode:prepublish":"python3 ../scripts/build.py && python3 ../scripts/build-extension.py", "package":"npx @vscode/vsce package --no-dependencies" }
+}
