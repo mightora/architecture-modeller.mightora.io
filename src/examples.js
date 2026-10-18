@@ -52,6 +52,7 @@
     n('packing', 'Packing workflow', 'automation', 'warehouse'), n('dispatch', 'Dispatch workflow', 'automation', 'warehouse')
   ], edges: [e('s1', 'web', 'catalog', 'reads'), e('s2', 'checkout', 'stripe', 'calls'), e('s3', 'checkout', 'orders', 'calls'), e('s4', 'orders', 'inventory', 'reads'), e('s5', 'orders', 'packing', 'calls'), e('s6', 'dispatch', 'delivery', 'calls'), e('s7', 'packing', 'dispatch', 'calls')] };
   for (const [id, iconId] of Object.entries({ apps: 'power-apps', flows: 'power-automate', dv: 'dataverse', portal: 'power-pages' })) example.nodes.find(n => n.id === id).iconId = iconId;
+  for (const [id,iconId] of Object.entries({copilot:'copilot-studio',function:'azure-functions',blob:'azure-storage'})) example.nodes.find(n=>n.id===id).iconId=iconId;
   const view = (id, name, focus, expanded = [], description = '') => ({ id, name, description, focus, expanded, positions: {}, showExternal: true, relationshipTypeIds: null });
   example.namedViews = [view('overview', 'Architecture overview', null, [], 'The platforms and their cross-boundary dependencies.'), view('power-platform', 'Power Platform', 'pp', [], 'Applications, data and automation with external context.'), view('business-data', 'Dataverse detail', 'dv', [], 'Business tables and their exact cross-level connections.'), view('integrations', 'Azure integration', 'azure', [], 'Document generation, storage and connected platforms.')];
   product.namedViews = [view('shop-overview', 'Shop overview', null), view('operations', 'Business operations', 'backoffice', ['warehouse'])];

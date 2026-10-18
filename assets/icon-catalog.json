@@ -1,0 +1,398 @@
+[
+  {
+    "id": "power-bi",
+    "name": "Power BI",
+    "collection": "Microsoft Power BI (archived)",
+    "termsUrl": "https://creativecommons.org/licenses/by/4.0/",
+    "sourceUrl": "https://github.com/microsoft/PowerBI-Icons",
+    "sourceMember": "Power-BI.svg",
+    "sha256": "03c49401348f56f55a59b2daee8164636caf8ec4b0e5985f3f366dbc0ca94f48"
+  },
+  {
+    "id": "power-apps",
+    "name": "Power Apps",
+    "collection": "Microsoft Power Platform",
+    "termsUrl": "https://learn.microsoft.com/en-us/power-platform/guidance/icons",
+    "sourceUrl": "https://download.microsoft.com/download/498606aa-6d27-4f13-aa5c-1401078c153b/Power-Platform-icons-scalable.zip",
+    "sourceMember": "Power Platform/PowerApps_scalable.svg",
+    "sha256": "c357907ad0a2d24a6d8c82b23fe4d2aaa4a4524076991f74770fc043a4cc455a"
+  },
+  {
+    "id": "power-automate",
+    "name": "Power Automate",
+    "collection": "Microsoft Power Platform",
+    "termsUrl": "https://learn.microsoft.com/en-us/power-platform/guidance/icons",
+    "sourceUrl": "https://download.microsoft.com/download/498606aa-6d27-4f13-aa5c-1401078c153b/Power-Platform-icons-scalable.zip",
+    "sourceMember": "Power Platform/PowerAutomate_scalable.svg",
+    "sha256": "2025db7bb3feec49d75681934b8561fb958cf11bdf0e2acf6e2b28db5c755e8d"
+  },
+  {
+    "id": "dataverse",
+    "name": "Dataverse",
+    "collection": "Microsoft Power Platform",
+    "termsUrl": "https://learn.microsoft.com/en-us/power-platform/guidance/icons",
+    "sourceUrl": "https://download.microsoft.com/download/498606aa-6d27-4f13-aa5c-1401078c153b/Power-Platform-icons-scalable.zip",
+    "sourceMember": "Power Platform/Dataverse_scalable.svg",
+    "sha256": "df71c0111148d116515a02c5cb07483caad2bcb779664fa16fd837a4709504ab"
+  },
+  {
+    "id": "power-pages",
+    "name": "Power Pages",
+    "collection": "Microsoft Power Platform",
+    "termsUrl": "https://learn.microsoft.com/en-us/power-platform/guidance/icons",
+    "sourceUrl": "https://download.microsoft.com/download/498606aa-6d27-4f13-aa5c-1401078c153b/Power-Platform-icons-scalable.zip",
+    "sourceMember": "Power Platform/PowerPages_scalable.svg",
+    "sha256": "7fdc8facba1b64c4e30fbed3d331ecab78746d0d29c29bae593b18788e870631"
+  },
+  {
+    "id": "power-platform",
+    "name": "Power Platform",
+    "collection": "Microsoft Power Platform",
+    "termsUrl": "https://learn.microsoft.com/en-us/power-platform/guidance/icons",
+    "sourceUrl": "https://download.microsoft.com/download/498606aa-6d27-4f13-aa5c-1401078c153b/Power-Platform-icons-scalable.zip",
+    "sourceMember": "Power Platform/PowerPlatform_scalable.svg",
+    "sha256": "c58871d6adac53a51512341e65055d0ec12f29948a001666c11dc7b5bb5fe142"
+  },
+  {
+    "id": "copilot-studio",
+    "name": "Microsoft Copilot Studio",
+    "collection": "Microsoft Power Platform",
+    "termsUrl": "https://learn.microsoft.com/en-us/power-platform/guidance/icons",
+    "sourceUrl": "https://download.microsoft.com/download/498606aa-6d27-4f13-aa5c-1401078c153b/Power-Platform-icons-scalable.zip",
+    "sourceMember": "CopilotStudio_scalable.svg",
+    "sha256": "c614fa6b9b7d33048c6c4efcdd508e5b7818d296cbd1cd7d8848bb2dd1be4fd0"
+  },
+  {
+    "id": "ai-builder",
+    "name": "AI Builder",
+    "collection": "Microsoft Power Platform",
+    "termsUrl": "https://learn.microsoft.com/en-us/power-platform/guidance/icons",
+    "sourceUrl": "https://download.microsoft.com/download/498606aa-6d27-4f13-aa5c-1401078c153b/Power-Platform-icons-scalable.zip",
+    "sourceMember": "Power Platform/AIBuilder_scalable.svg",
+    "sha256": "09354060aae6bfd903f3ff8246e90fce8514f4c56c603e676931fd99d338cfa8"
+  },
+  {
+    "id": "microsoft-agent-365",
+    "name": "Microsoft Agent 365",
+    "collection": "Microsoft Power Platform",
+    "termsUrl": "https://learn.microsoft.com/en-us/power-platform/guidance/icons",
+    "sourceUrl": "https://download.microsoft.com/download/498606aa-6d27-4f13-aa5c-1401078c153b/Power-Platform-icons-scalable.zip",
+    "sourceMember": "Agent365_scalable.svg",
+    "sha256": "7d7988f5d29d3d3b425bdbb1ebacdd32d74a3e0819a177ed389a99ed73cb0ed9"
+  },
+  {
+    "id": "azure-functions",
+    "name": "Azure Functions",
+    "collection": "Microsoft Azure",
+    "termsUrl": "https://learn.microsoft.com/en-us/azure/architecture/icons/",
+    "sourceUrl": "https://arch-center.azureedge.net/icons/Azure_Public_Service_Icons_V24.zip",
+    "sourceMember": "Azure_Public_Service_Icons/Icons/compute/10029-icon-service-Function-Apps.svg",
+    "sha256": "1a6c9c108d5f63f7b78bc6fbc464059acd2eaa8c1d111e9bcd28a8b2cdf470b9"
+  },
+  {
+    "id": "azure-app-service",
+    "name": "Azure App Service",
+    "collection": "Microsoft Azure",
+    "termsUrl": "https://learn.microsoft.com/en-us/azure/architecture/icons/",
+    "sourceUrl": "https://arch-center.azureedge.net/icons/Azure_Public_Service_Icons_V24.zip",
+    "sourceMember": "Azure_Public_Service_Icons/Icons/app services/10035-icon-service-App-Services.svg",
+    "sha256": "529d83fc80637a96b6d27f6cfac7536e1c5f9b1b67f58aef4e2e3d6f47fd4925"
+  },
+  {
+    "id": "azure-sql",
+    "name": "Azure SQL Database",
+    "collection": "Microsoft Azure",
+    "termsUrl": "https://learn.microsoft.com/en-us/azure/architecture/icons/",
+    "sourceUrl": "https://arch-center.azureedge.net/icons/Azure_Public_Service_Icons_V24.zip",
+    "sourceMember": "Azure_Public_Service_Icons/Icons/databases/10130-icon-service-SQL-Database.svg",
+    "sha256": "a26124a2b188ccf910520c935c726f7364e0f5935d7a4319ebcab9c80a40e475"
+  },
+  {
+    "id": "azure-storage",
+    "name": "Azure Storage account",
+    "collection": "Microsoft Azure",
+    "termsUrl": "https://learn.microsoft.com/en-us/azure/architecture/icons/",
+    "sourceUrl": "https://arch-center.azureedge.net/icons/Azure_Public_Service_Icons_V24.zip",
+    "sourceMember": "Azure_Public_Service_Icons/Icons/storage/10086-icon-service-Storage-Accounts.svg",
+    "sha256": "7190d3bb14ce30ce74bd0af873915830fe821e8c5f6ef6f3149e6f7cfb2aa4f7"
+  },
+  {
+    "id": "azure-key-vault",
+    "name": "Azure Key Vault",
+    "collection": "Microsoft Azure",
+    "termsUrl": "https://learn.microsoft.com/en-us/azure/architecture/icons/",
+    "sourceUrl": "https://arch-center.azureedge.net/icons/Azure_Public_Service_Icons_V24.zip",
+    "sourceMember": "Azure_Public_Service_Icons/Icons/security/10245-icon-service-Key-Vaults.svg",
+    "sha256": "712b426f54f0fc50d0816dc79df709daa7ac5f93ccaf4e9b3527f627f6e9ad97"
+  },
+  {
+    "id": "azure-vnet",
+    "name": "Azure Virtual Network",
+    "collection": "Microsoft Azure",
+    "termsUrl": "https://learn.microsoft.com/en-us/azure/architecture/icons/",
+    "sourceUrl": "https://arch-center.azureedge.net/icons/Azure_Public_Service_Icons_V24.zip",
+    "sourceMember": "Azure_Public_Service_Icons/Icons/networking/10061-icon-service-Virtual-Networks.svg",
+    "sha256": "64a5e75ecef2f9f69067faa2eb131266cb8f2858706f8ab74bfea5ad0d98b14d"
+  },
+  {
+    "id": "azure-logic-apps",
+    "name": "Azure Logic Apps",
+    "collection": "Microsoft Azure",
+    "termsUrl": "https://learn.microsoft.com/en-us/azure/architecture/icons/",
+    "sourceUrl": "https://arch-center.azureedge.net/icons/Azure_Public_Service_Icons_V24.zip",
+    "sourceMember": "Azure_Public_Service_Icons/Icons/integration/02631-icon-service-Logic-Apps.svg",
+    "sha256": "3390e6337469e29d755a4077b64efcf0b0269ee871113417fd4458269351b438"
+  },
+  {
+    "id": "azure-api-management",
+    "name": "Azure API Management",
+    "collection": "Microsoft Azure",
+    "termsUrl": "https://learn.microsoft.com/en-us/azure/architecture/icons/",
+    "sourceUrl": "https://arch-center.azureedge.net/icons/Azure_Public_Service_Icons_V24.zip",
+    "sourceMember": "Azure_Public_Service_Icons/Icons/devops/10042-icon-service-API-Management-Services.svg",
+    "sha256": "cf794288575f2f7b080c50aa8319d42b02a2f2ae5351e4712c574353fc801f9a"
+  },
+  {
+    "id": "azure-service-bus",
+    "name": "Azure Service Bus",
+    "collection": "Microsoft Azure",
+    "termsUrl": "https://learn.microsoft.com/en-us/azure/architecture/icons/",
+    "sourceUrl": "https://arch-center.azureedge.net/icons/Azure_Public_Service_Icons_V24.zip",
+    "sourceMember": "Azure_Public_Service_Icons/Icons/integration/10836-icon-service-Azure-Service-Bus.svg",
+    "sha256": "eaf42cb87aedf608f60d40b601eb86491daaa71b8eab40a935e8e7fa2e62a2cf"
+  },
+  {
+    "id": "azure-aks",
+    "name": "Azure Kubernetes Service",
+    "collection": "Microsoft Azure",
+    "termsUrl": "https://learn.microsoft.com/en-us/azure/architecture/icons/",
+    "sourceUrl": "https://arch-center.azureedge.net/icons/Azure_Public_Service_Icons_V24.zip",
+    "sourceMember": "Azure_Public_Service_Icons/Icons/compute/10023-icon-service-Kubernetes-Services.svg",
+    "sha256": "81954a481503057498d543a51863b2eb4673284e109662cdc421051d11dba25c"
+  },
+  {
+    "id": "azure-app-insights",
+    "name": "Azure Application Insights",
+    "collection": "Microsoft Azure",
+    "termsUrl": "https://learn.microsoft.com/en-us/azure/architecture/icons/",
+    "sourceUrl": "https://arch-center.azureedge.net/icons/Azure_Public_Service_Icons_V24.zip",
+    "sourceMember": "Azure_Public_Service_Icons/Icons/devops/00012-icon-service-Application-Insights.svg",
+    "sha256": "36c73dea8b1598fbfff84890a2b409600f1339eec8c1bf1a896439e9da8f9dca"
+  },
+  {
+    "id": "aws-lambda",
+    "name": "AWS Lambda",
+    "collection": "AWS",
+    "termsUrl": "https://aws.amazon.com/architecture/icons/",
+    "sourceUrl": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip",
+    "sourceMember": "Architecture-Service-Icons_07312026/Arch_Compute/64/Arch_AWS-Lambda_64.svg",
+    "sha256": "5818c80cd8e7d08891a2492c7694f472ca914fb3a99d9ef8e597db0b37ad7f13"
+  },
+  {
+    "id": "aws-ec2",
+    "name": "Amazon EC2",
+    "collection": "AWS",
+    "termsUrl": "https://aws.amazon.com/architecture/icons/",
+    "sourceUrl": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip",
+    "sourceMember": "Architecture-Service-Icons_07312026/Arch_Compute/64/Arch_Amazon-EC2_64.svg",
+    "sha256": "5a7a0cef7a9f44ccdd544564ce9076abec3024090be0d6454504c49d149ce9ec"
+  },
+  {
+    "id": "aws-s3",
+    "name": "Amazon S3",
+    "collection": "AWS",
+    "termsUrl": "https://aws.amazon.com/architecture/icons/",
+    "sourceUrl": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip",
+    "sourceMember": "Architecture-Service-Icons_07312026/Arch_Storage/64/Arch_Amazon-Simple-Storage-Service_64.svg",
+    "sha256": "b92c5101cc6565dd12df37655802279f8fba0c719279f62f93106d26750b36c6"
+  },
+  {
+    "id": "aws-rds",
+    "name": "Amazon RDS",
+    "collection": "AWS",
+    "termsUrl": "https://aws.amazon.com/architecture/icons/",
+    "sourceUrl": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip",
+    "sourceMember": "Architecture-Service-Icons_07312026/Arch_Databases/64/Arch_Amazon-RDS_64.svg",
+    "sha256": "1b24caf4baf274a12164053f05bf0cba331f4d5e30fdd4164000702c1ec192a6"
+  },
+  {
+    "id": "aws-dynamodb",
+    "name": "Amazon DynamoDB",
+    "collection": "AWS",
+    "termsUrl": "https://aws.amazon.com/architecture/icons/",
+    "sourceUrl": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip",
+    "sourceMember": "Architecture-Service-Icons_07312026/Arch_Databases/64/Arch_Amazon-DynamoDB_64.svg",
+    "sha256": "ed169f049cc24c954cfbe3d14695d5b022558c45e5605936a565d1347c14b664"
+  },
+  {
+    "id": "aws-api-gateway",
+    "name": "Amazon API Gateway",
+    "collection": "AWS",
+    "termsUrl": "https://aws.amazon.com/architecture/icons/",
+    "sourceUrl": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip",
+    "sourceMember": "Architecture-Service-Icons_07312026/Arch_Networking-Content-Delivery/64/Arch_Amazon-API-Gateway_64.svg",
+    "sha256": "a91afd652b8d3412179d0257a818165149224d521e4e1906ee8ea0cd28666a31"
+  },
+  {
+    "id": "aws-sqs",
+    "name": "Amazon SQS",
+    "collection": "AWS",
+    "termsUrl": "https://aws.amazon.com/architecture/icons/",
+    "sourceUrl": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip",
+    "sourceMember": "Architecture-Service-Icons_07312026/Arch_Application-Integration/64/Arch_Amazon-Simple-Queue-Service_64.svg",
+    "sha256": "bbab2545dccba2e11aff74e42c7f8078a9051b14b16114e539da1c4b09bdbdcd"
+  },
+  {
+    "id": "aws-sns",
+    "name": "Amazon SNS",
+    "collection": "AWS",
+    "termsUrl": "https://aws.amazon.com/architecture/icons/",
+    "sourceUrl": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip",
+    "sourceMember": "Architecture-Service-Icons_07312026/Arch_Application-Integration/64/Arch_Amazon-Simple-Notification-Service_64.svg",
+    "sha256": "f0781cd57174dd2ddfe2d2033566c73f5c0bf8192610eec5194e7a7756187dfe"
+  },
+  {
+    "id": "aws-cloudfront",
+    "name": "Amazon CloudFront",
+    "collection": "AWS",
+    "termsUrl": "https://aws.amazon.com/architecture/icons/",
+    "sourceUrl": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip",
+    "sourceMember": "Architecture-Service-Icons_07312026/Arch_Networking-Content-Delivery/64/Arch_Amazon-CloudFront_64.svg",
+    "sha256": "664919982792a69058077eaf39240afd320bbcbd082d36a9148184ec32708cd5"
+  },
+  {
+    "id": "aws-eks",
+    "name": "Amazon EKS",
+    "collection": "AWS",
+    "termsUrl": "https://aws.amazon.com/architecture/icons/",
+    "sourceUrl": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip",
+    "sourceMember": "Architecture-Service-Icons_07312026/Arch_Containers/64/Arch_Amazon-Elastic-Kubernetes-Service_64.svg",
+    "sha256": "abda372bab3e7e0e873edf2b078972625b2cff255d8626fbf955546e71bdf9cb"
+  },
+  {
+    "id": "aws-cognito",
+    "name": "Amazon Cognito",
+    "collection": "AWS",
+    "termsUrl": "https://aws.amazon.com/architecture/icons/",
+    "sourceUrl": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip",
+    "sourceMember": "Architecture-Service-Icons_07312026/Arch_Security-Identity/64/Arch_Amazon-Cognito_64.svg",
+    "sha256": "cf9c55baa325d5d07aea0054115b1b24d68c1d7e046a4f8a360ccdefbba507e9"
+  },
+  {
+    "id": "aws-iam",
+    "name": "AWS Identity and Access Management",
+    "collection": "AWS",
+    "termsUrl": "https://aws.amazon.com/architecture/icons/",
+    "sourceUrl": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip",
+    "sourceMember": "Architecture-Service-Icons_07312026/Arch_Security-Identity/64/Arch_AWS-Identity-and-Access-Management_64.svg",
+    "sha256": "3135793557c065d0481a3985ccc0574b36278d56a2e2c5d59107d0d28f51b827"
+  },
+  {
+    "id": "aws-step-functions",
+    "name": "AWS Step Functions",
+    "collection": "AWS",
+    "termsUrl": "https://aws.amazon.com/architecture/icons/",
+    "sourceUrl": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip",
+    "sourceMember": "Architecture-Service-Icons_07312026/Arch_Application-Integration/64/Arch_AWS-Step-Functions_64.svg",
+    "sha256": "19da6b2ef57df3a441b122b33def713b9715e95f74b5033d98e81629babe7ba5"
+  },
+  {
+    "id": "aws-vpc",
+    "name": "Amazon VPC",
+    "collection": "AWS",
+    "termsUrl": "https://aws.amazon.com/architecture/icons/",
+    "sourceUrl": "https://d1.awsstatic.com/onedam/marketing-channels/website/public/shared/architecture-icon-release/Icon-package_07312026.5846e92413caa21490223536cc97f1269e44fa92.zip",
+    "sourceMember": "Architecture-Service-Icons_07312026/Arch_Networking-Content-Delivery/64/Arch_Amazon-Virtual-Private-Cloud_64.svg",
+    "sha256": "4a2c292527ce28a95d9038ab7e6be818751ffef0a91aabb5de2e61045150a98d"
+  },
+  {
+    "id": "generic-user",
+    "name": "User",
+    "collection": "General architecture (Lucide)",
+    "termsUrl": "https://lucide.dev/license",
+    "sourceUrl": "https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/user.svg",
+    "sourceMember": null,
+    "sha256": "eae3b3b2400031ddd5ec869327d127a96014e5f63aa6e06658dd5d4e90661aa8"
+  },
+  {
+    "id": "generic-users",
+    "name": "Users",
+    "collection": "General architecture (Lucide)",
+    "termsUrl": "https://lucide.dev/license",
+    "sourceUrl": "https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/users.svg",
+    "sourceMember": null,
+    "sha256": "eeed488a1ec95ba730dd69996536fb65061d6ea273afb2429ae47e65eebf401c"
+  },
+  {
+    "id": "generic-cloud",
+    "name": "Cloud",
+    "collection": "General architecture (Lucide)",
+    "termsUrl": "https://lucide.dev/license",
+    "sourceUrl": "https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/cloud.svg",
+    "sourceMember": null,
+    "sha256": "28a34022ed00177eb1f218eea5d2b7af30d09b529187fe32219e4dd8ea2b9740"
+  },
+  {
+    "id": "generic-database",
+    "name": "Database",
+    "collection": "General architecture (Lucide)",
+    "termsUrl": "https://lucide.dev/license",
+    "sourceUrl": "https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/database.svg",
+    "sourceMember": null,
+    "sha256": "471eb14bc8d144896a82dfc4aa9daf350f769f0896f4bef33e50aabdbb51130d"
+  },
+  {
+    "id": "generic-server",
+    "name": "Server",
+    "collection": "General architecture (Lucide)",
+    "termsUrl": "https://lucide.dev/license",
+    "sourceUrl": "https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/server.svg",
+    "sourceMember": null,
+    "sha256": "f7bea54b609dc488f3b848995014041846b2443fd2a880653e9e583d7a034f61"
+  },
+  {
+    "id": "generic-network",
+    "name": "Network",
+    "collection": "General architecture (Lucide)",
+    "termsUrl": "https://lucide.dev/license",
+    "sourceUrl": "https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/network.svg",
+    "sourceMember": null,
+    "sha256": "626be730feea1e5ea7539fbf78b4a3fcb927ce5d7dc43364f2216908672ac792"
+  },
+  {
+    "id": "generic-workflow",
+    "name": "Workflow",
+    "collection": "General architecture (Lucide)",
+    "termsUrl": "https://lucide.dev/license",
+    "sourceUrl": "https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/workflow.svg",
+    "sourceMember": null,
+    "sha256": "ae99ea8f56a2835a2cca35b2fbb57643ab73443610970dba23e24bd9df75cfec"
+  },
+  {
+    "id": "generic-shield",
+    "name": "Shield",
+    "collection": "General architecture (Lucide)",
+    "termsUrl": "https://lucide.dev/license",
+    "sourceUrl": "https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/shield.svg",
+    "sourceMember": null,
+    "sha256": "be32f6a86df7cbe43a83c439dd8849e5bcf5145e484d23420c20d8b98a78e82b"
+  },
+  {
+    "id": "generic-box",
+    "name": "Box",
+    "collection": "General architecture (Lucide)",
+    "termsUrl": "https://lucide.dev/license",
+    "sourceUrl": "https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/box.svg",
+    "sourceMember": null,
+    "sha256": "511862693d914d2bf1947c9ccc513595f2a256541f5dd4f6f9ac8383cd41ac4f"
+  },
+  {
+    "id": "generic-layers",
+    "name": "Layers",
+    "collection": "General architecture (Lucide)",
+    "termsUrl": "https://lucide.dev/license",
+    "sourceUrl": "https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/layers.svg",
+    "sourceMember": null,
+    "sha256": "ce16d0a955e3581cda17f6b2fd5c5bc2034b405f9cecc31c8ebb8495b4afc1bb"
+  }
+]

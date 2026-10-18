@@ -1,5 +1,9 @@
 # Model format, version 1
 
+Optional top-level `description` (up to 4,000 characters) records the question, audience and scope. JSON/YAML retain it; Word reports and PowerPoint notes include it. Older files remain compatible.
+
+Entity or type `iconId` refers to a bundled entry in `assets/icon-catalog.json`. All five legacy IDs remain valid alongside the new collection IDs. Arbitrary SVG and remote image URLs are rejected. Icon bytes are app assets rather than duplicated in model files.
+
 The portable JSON document contains `schemaVersion`, `name`, `types`, `relationshipTypes`, `nodes`, `edges` and `views`.
 
 Optional version-1 extensions: `namedViews` is an ordered array of up to 50 records with id, name, description, focus, expanded IDs, relationshipTypeIds (null means all; [] means none), showExternal, positions and optional camera. A component or type can specify an `iconId` from the bundled registry; no arbitrary image URLs or SVG input are accepted. Empty iconId selects the generic symbol. Older version-1 files remain accepted.

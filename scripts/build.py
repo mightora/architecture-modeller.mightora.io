@@ -49,7 +49,7 @@ def validate_offline(html):
     assert 'renderGraph' not in select, 'Selecting a block replaces its double-click target'
 
 def main():
-    for source in ['core.js', 'dimensions.js', 'examples.js', 'formats.js', 'office.js', 'app.js', 'vscode-bridge.js']:
+    for source in ['core.js', 'dimensions.js', 'guidance.js', 'examples.js', 'formats.js', 'office.js', 'app.js', 'vscode-bridge.js']:
         subprocess.run(['node', '--check', str(ROOT / 'src' / source)], check=True)
     test = subprocess.run(['node', '--test', '--test-reporter=tap', *[str(p) for p in sorted((ROOT / 'tests').glob('*.test.cjs'))]], text=True, capture_output=True)
     if test.returncode:
@@ -61,19 +61,20 @@ def main():
     footer_details = json.loads(footer_check.stdout)
     DIST.mkdir(exist_ok=True); (DIST / 'downloads').mkdir(exist_ok=True)
     template = (ROOT / 'src/index.html').read_text()
+    template = template.replace('<!--ICON_TERMS-->',(ROOT / 'src/icon-terms.html').read_text())
     template = template.replace('The application has no model-upload endpoint, analytics or telemetry.', 'The application has no model-upload endpoint. The public website uses Cloudflare Web Analytics to measure visits and performance; model content is not sent to the analytics service. The offline and VS Code editions block analytics connections.')
-    scripts = {name: (ROOT / 'src' / name).read_text().replace('</script', '<\\/script') for name in ['core.js', 'dimensions.js', 'examples.js', 'formats.js', 'office.js', 'app.js']}
+    scripts = {name: (ROOT / 'src' / name).read_text().replace('</script', '<\\/script') for name in ['core.js', 'dimensions.js', 'guidance.js', 'examples.js', 'formats.js', 'office.js', 'app.js']}
     styles = (ROOT / 'src/styles.css').read_text()
-    for token, name in [('CORE_SCRIPT', 'core.js'), ('DIMENSIONS_SCRIPT', 'dimensions.js'), ('EXAMPLE_SCRIPT', 'examples.js'), ('FORMATS_SCRIPT', 'formats.js'), ('OFFICE_SCRIPT', 'office.js'), ('APP_SCRIPT', 'app.js')]:
+    for token, name in [('CORE_SCRIPT', 'core.js'), ('DIMENSIONS_SCRIPT', 'dimensions.js'), ('GUIDANCE_SCRIPT', 'guidance.js'), ('EXAMPLE_SCRIPT', 'examples.js'), ('FORMATS_SCRIPT', 'formats.js'), ('OFFICE_SCRIPT', 'office.js'), ('APP_SCRIPT', 'app.js')]:
         template = template.replace(f'/*{token}*/', scripts[name])
     vendors = '\n;\n'.join(re.sub(r'//# sourceMappingURL=.*|//#sourceMappingURL=.*', '', (ROOT / 'assets' / n).read_text()) for n in ['js-yaml.min.js', 'jszip.min.js', 'pptxgen.bundle.js'])
     template = template.replace('/*VENDOR_SCRIPT*/', vendors.replace('</script', '<\\/script'))
-    icon_names = {'power-apps': 'Power Apps', 'power-automate': 'Power Automate', 'dataverse': 'Dataverse', 'power-pages': 'Power Pages', 'power-bi': 'Power BI'}
-    icon_registry = {key: {'id': key, 'name': name, 'svg': 'data:image/svg+xml;base64,' + base64.b64encode((ROOT / 'assets/icons' / (key + '.svg')).read_bytes()).decode(), 'png': 'data:image/png;base64,' + base64.b64encode((ROOT / 'assets/icons' / (key + '.png')).read_bytes()).decode()} for key, name in icon_names.items()}
-    template = template.replace('/*ICON_SCRIPT*/', 'globalThis.ModellerIcons = ' + json.dumps(icon_registry) + ';')
+    icon_catalog = json.loads((ROOT / 'assets/icon-catalog.json').read_text())
+    icon_registry = {icon['id']: {**icon, 'svg': 'data:image/svg+xml;base64,' + base64.b64encode((ROOT / 'assets/icons' / (icon['id'] + '.svg')).read_bytes()).decode(), 'png': 'data:image/png;base64,' + base64.b64encode((ROOT / 'assets/icons' / (icon['id'] + '.png')).read_bytes()).decode()} for icon in icon_catalog}
+    template = template.replace('/*ICON_SCRIPT*/', 'globalThis.ModellerIconCatalog = '+json.dumps(icon_catalog)+';globalThis.ModellerIcons = ' + json.dumps(icon_registry) + ';globalThis.ModellerIconLicenseText = '+json.dumps((ROOT/'assets/LUCIDE-LICENSE.txt').read_text())+';')
     template = template.replace('/*APP_STYLES*/', styles)
     template = template.replace('and the YAML parser from external domains.', 'from external domains; the YAML parser and Office exporters are bundled locally.')
-    notices = (ROOT / 'THIRD-PARTY-NOTICES.md').read_text() + '\n\n' + '\n\n'.join((ROOT / 'assets' / name).read_text() for name in ['JS-YAML-LICENSE.txt', 'JSZIP-LICENSE.txt', 'PPTXGENJS-LICENSE.txt'])
+    notices = (ROOT / 'THIRD-PARTY-NOTICES.md').read_text() + '\n\n' + '\n\n'.join((ROOT / 'assets' / name).read_text() for name in ['JS-YAML-LICENSE.txt', 'JSZIP-LICENSE.txt', 'PPTXGENJS-LICENSE.txt', 'LUCIDE-LICENSE.txt'])
     template = template.replace('<!--DEPENDENCY_NOTICES-->', '<section class="wrap info-section"><details class="faq"><summary>Third-party attribution and licence texts</summary><pre class="licence-text">' + html.escape(notices) + '</pre></details></section>')
     online_head = '''<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; img-src 'self' data: blob: https://cdn.jsdelivr.net https://raw.githubusercontent.com https://techtweedie.github.io; connect-src 'self' https://cdn.jsdelivr.net https://raw.githubusercontent.com https://cloudflareinsights.com; font-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/mightora/shared-ui@main/shared.css">

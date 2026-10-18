@@ -10,6 +10,14 @@
   const x = s => String(s ?? '').replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g, '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' }[c]));
   const xmlns = 'http://schemas.openxmlformats.org/';
   const icons = () => root.ModellerIcons || {};
+  const catalog = nodeEnv ? require('../assets/icon-catalog.json') : root.ModellerIconCatalog;
+  function attribution(model,nodes) {
+    const used = [...new Set(nodes.map(n=>iconFor(model,n)?.id).filter(Boolean))].map(id=>catalog.find(i=>i.id===id)).filter(Boolean);
+    const collections = new Map(used.map(i=>[i.collection,i]));
+    const lines = [...collections.values()].map(i=>`${i.collection}: ${i.termsUrl}. Source: ${i.sourceUrl}. Artwork retains its original owners' rights and usage terms.`);
+    if(used.some(i=>i.collection.startsWith('General architecture'))) lines.push(nodeEnv ? require('node:fs').readFileSync(require('node:path').join(__dirname,'../assets/LUCIDE-LICENSE.txt'),'utf8') : root.ModellerIconLicenseText || 'Lucide ISC and Feather MIT licence notices: https://lucide.dev/license');
+    return lines;
+  }
   function iconFor(model, n) { const original = model.nodes.find(v => v.id === (n.originalId || n.id)); const type = model.types.find(t => t.id === original?.typeId); return icons()[original?.iconId ?? type?.iconId] || null; }
   function scene(model, view) {
     const projection = M.projectView(model, view), layout = M.layoutView(model, projection, view, view.positions || {}), boxes = [...layout.nodes, ...(layout.bands || [])];
@@ -51,7 +59,7 @@
       const t = type(n), icon = iconFor(s.model, n), xx = n.x, yy = n.y;
       if (background) return `<rect x="${xx}" y="${yy}" width="${n.w}" height="${n.h}" rx="9" fill="#f0fdf4" stroke="${t.color}" stroke-dasharray="5 4"/>`;
       const label = wrap(n.name, n.expanded ? Math.max(24, Math.floor(n.w / 8) - 5) : 26, n.expanded ? 1 : 2);
-      return `${n.expanded ? '' : `<rect x="${xx}" y="${yy}" width="${n.w}" height="${n.h}" rx="${t.shape === 'square' ? 2 : 9}" fill="white" stroke="${t.color}"${n.external ? ' stroke-dasharray="6 4"' : ''}/>`}${icon ? `<image href="${icon.png}" x="${xx + 15}" y="${yy + 12}" width="25" height="25" preserveAspectRatio="xMidYMid meet"/>` : `<rect x="${xx + 17}" y="${yy + 20}" width="11" height="11" rx="2" fill="${t.color}"/>`}<text x="${xx + 47}" y="${yy + 29}" fill="${t.color}" font-size="10">${x(n.expanded ? t.name : t.name.toUpperCase())}</text><text x="${xx + 16}" y="${yy + (n.expanded ? 52 : 61)}" fill="#111827" font-size="14" font-weight="600">${label.map((line, i) => `<tspan x="${xx + 16}" dy="${i ? 18 : 0}">${x(line)}</tspan>`).join('')}</text>${n.expanded ? '' : `<text x="${xx + 16}" y="${yy + 108}" fill="#57675e" font-size="10">${n.external ? 'EXTERNAL CONTEXT' : `${s.model.nodes.filter(c => c.parentId === (n.originalId || n.id)).length} components inside`}</text>`}`;
+      return `${n.expanded ? '' : `<rect x="${xx}" y="${yy}" width="${n.w}" height="${n.h}" rx="${t.shape === 'square' ? 2 : 9}" fill="white" stroke="${t.color}"${n.external ? ' stroke-dasharray="6 4"' : ''}/>`}${icon ? `<image href="${icon.png}" x="${xx + 15}" y="${yy + 12}" width="25" height="25" preserveAspectRatio="xMidYMid meet"/>` : `<rect x="${xx + 17}" y="${yy + 20}" width="11" height="11" rx="2" fill="${t.color}"/>`}<text x="${xx + 47}" y="${yy + 29}" fill="${t.color}" font-size="10">${x((icon?.name || t.name).slice(0,36))}</text><text x="${xx + 16}" y="${yy + (n.expanded ? 52 : 61)}" fill="#111827" font-size="14" font-weight="600">${label.map((line, i) => `<tspan x="${xx + 16}" dy="${i ? 18 : 0}">${x(line)}</tspan>`).join('')}</text>${n.expanded ? '' : `<text x="${xx + 16}" y="${yy + 108}" fill="#57675e" font-size="10">${n.external ? 'EXTERNAL CONTEXT' : `${s.model.nodes.filter(c => c.parentId === (n.originalId || n.id)).length} components inside`}</text>`}`;
     };
     const labels = [], used = [];
     const edges = s.edges.map((e, i) => { const p = labelGeometry(s, e, used), { g, label, width: w, cx: mx, cy: my } = p, t = s.model.relationshipTypes.find(t => t.id === e.typeId);
@@ -59,7 +67,7 @@
       return `<defs><marker id="a${i}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10Z" fill="${t.color}"/></marker></defs><path d="M${g.x1} ${g.y1}L${g.x2} ${g.y2}" fill="none" stroke="${t.color}" stroke-width="1.7"${t.style === 'dashed' ? ' stroke-dasharray="5 5"' : ''} marker-end="url(#a${i})"/>`;
     }).join('');
     const bands = s.bands.map(b => `<rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" rx="10" fill="#f5faf7" stroke="${b.color}"/><text x="${b.x + 20}" y="${b.y + 27}" fill="${b.color}" font-size="16" font-weight="600">${x(b.name)}</text><text x="${b.x + 20}" y="${b.y + 47}" fill="#57675e" font-size="11">${x(b.description.slice(0,125))}</text>`).join('');
-    return `<svg xmlns="http://www.w3.org/2000/svg" width="${s.width}" height="${s.height}" viewBox="${s.minX} ${s.minY} ${s.width} ${s.height}" role="img"><title>${x(s.view.name)}</title><rect x="${s.minX}" y="${s.minY}" width="${s.width}" height="${s.height}" fill="white"/><g font-family="Arial, sans-serif">${bands}${s.nodes.filter(n => n.expanded).map(n => node(n, true)).join('')}${edges}${s.nodes.map(n => node(n, false)).join('')}${labels.join('')}</g></svg>`;
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${s.width}" height="${s.height}" viewBox="${s.minX} ${s.minY} ${s.width} ${s.height}" role="img"><title>${x(s.view.name)}</title><metadata>${x(attribution(s.model,s.nodes).join('\n'))}</metadata><rect x="${s.minX}" y="${s.minY}" width="${s.width}" height="${s.height}" fill="white"/><g font-family="Arial, sans-serif">${bands}${s.nodes.filter(n => n.expanded).map(n => node(n, true)).join('')}${edges}${s.nodes.map(n => node(n, false)).join('')}${labels.join('')}</g></svg>`;
   }
   function prepare(model, views) {
     M.validate(model); if (!views.length || views.length > 50) throw new Error('Choose between 1 and 50 views.');
@@ -93,7 +101,7 @@
       for (const n of s.nodes) {
         const t = model.types.find(t => t.id === n.typeId), icon = iconFor(model, n), font = Math.max(5, Math.min(12, 14 * scale * 72));
         if (icon) slide.addImage({ data: icon.png, x: px(n.x + 15), y: py(n.y + 11), w: 25 * scale, h: 25 * scale, altText: icon.name });
-        slide.addText(t.name, { x: px(n.x + (icon ? 47 : 16)), y: py(n.y + 14), w: Math.max(.1, (n.w - (icon ? 63 : 32)) * scale), h: 18 * scale, fontSize: Math.max(4, 10 * scale * 72), color: t.color.slice(1), margin: 0, fit: 'shrink' });
+        slide.addText(icon?.name || t.name, { x: px(n.x + (icon ? 47 : 16)), y: py(n.y + 14), w: Math.max(.1, (n.w - (icon ? 63 : 32)) * scale), h: 18 * scale, fontSize: Math.max(4, 10 * scale * 72), color: t.color.slice(1), margin: 0, fit: 'shrink' });
         slide.addText(n.name, { x: px(n.x + 16), y: py(n.y + (n.expanded ? 34 : 44)), w: (n.w - 32) * scale, h: (n.expanded ? 24 : 48) * scale, fontSize: font, bold: true, color: '111827', margin: 0, valign: 'mid', fit: 'shrink', breakLine: false });
         if (n.external) slide.addText('EXTERNAL CONTEXT', { x: px(n.x + 16), y: py(n.y + 101), w: (n.w - 32) * scale, h: 14 * scale, fontSize: Math.max(4, 9 * scale * 72), color: '57675E', margin: 0 });
       }
@@ -106,7 +114,7 @@
       slide.addText(`${i + 1} / ${scenes.length} · ${model.name} · Mightora`, { x: .45, y: 7.12, w: 12.4, h: .17, fontSize: 8, color: '64748B', margin: 0 });
       const exact = s.edges.flatMap(e => e.edges).map(e => `${M.path(model, e.source)} — ${model.relationshipTypes.find(t => t.id === e.typeId).name}${e.role ? ' · ' + D.roleLabel(e) : ''}${e.label ? ' (' + e.label + ')' : ''} → ${M.path(model, e.target)}`);
       slide.addNotes(['Perspective: '+(s.view.perspective || 'solution'), ...s.nodes.map(n => `${n.name} [${D.kind(n)}]${layerNames(model,n) ? ' — Layers: '+layerNames(model,n) : ''}`), ...(model.layers || []).map(l => `${l.name}: ${l.description}`)]);
-      slide.addNotes([s.view.description || '', 'Exact relationships in this view:', ...exact, 'Microsoft icons: Microsoft/PowerBI-Icons archived official set, CC BY 4.0; Microsoft architecture icon use and trademark terms apply. https://github.com/microsoft/PowerBI-Icons']);
+      slide.addNotes([model.description || '',s.view.description || '', 'Exact relationships in this view:', ...exact, ...attribution(model,s.nodes)]);
       connectorMaps.push(maps);
     }
     // Convert line shapes into attached native DrawingML connectors. Source IDs are generated by PptxGenJS.
@@ -139,6 +147,7 @@
     const scenes = prepare(model, views), zip = new Zip(), rels = [{ id: 'rStyles', type: 'styles', target: 'styles.xml' }], body = [];
     const landscape = settings.landscape === true, pageWidth = landscape ? 15840 : 12240, pageHeight = landscape ? 12240 : 15840, usable = pageWidth - 1800;
     body.push(paragraph(model.name, 'Title'), paragraph(`Architecture views · ${views.length} selected · Generated with Mightora Architecture Modeller`));
+    if(model.description) body.push(paragraph(model.description));
     for (let i = 0; i < scenes.length; i++) {
       const s = scenes[i], source = svg(s), png = await (settings.rasterize || rasterize)(source);
       zip.file(`word/media/view${i + 1}.svg`, source); zip.file(`word/media/view${i + 1}.png`, png, { base64: true });
@@ -155,7 +164,7 @@
         if (exact.length) { body.push(paragraph('Relationships', 'Heading2')); body.push(table([['Source', 'Relationship / responsibility', 'Target'], ...exact.map(e => [M.path(model, e.source), `${model.relationshipTypes.find(t => t.id === e.typeId).name}${e.role ? '\n'+D.roleLabel(e) : ''}${e.label ? ': ' + e.label : ''}${e.description ? '\n' + e.description : ''}`, M.path(model, e.target)])], [Math.round(usable * .36), Math.round(usable * .28), usable - Math.round(usable * .36) - Math.round(usable * .28)])); }
       }
     }
-    body.push(paragraph('Microsoft product icons are from the official archived Microsoft PowerBI Icons set, licensed CC BY 4.0. Architecture icon use and trademark terms apply. Source: https://github.com/microsoft/PowerBI-Icons', 'Caption'));
+    for(const credit of attribution(model,scenes.flatMap(s=>s.nodes))) body.push(paragraph(credit,'Caption'));
     body.push(`<w:sectPr><w:pgSz w:w="${pageWidth}" w:h="${pageHeight}"${landscape ? ' w:orient="landscape"' : ''}/><w:pgMar w:top="900" w:right="900" w:bottom="900" w:left="900" w:header="0" w:footer="0" w:gutter="0"/></w:sectPr>`);
     zip.file('word/document.xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="${xmlns}wordprocessingml/2006/main" xmlns:r="${xmlns}officeDocument/2006/relationships" xmlns:wp="${xmlns}drawingml/2006/wordprocessingDrawing"><w:body>${body.join('')}</w:body></w:document>`);
     zip.file('word/_rels/document.xml.rels', `<?xml version="1.0"?><Relationships xmlns="${xmlns}package/2006/relationships">${rels.map(r => `<Relationship Id="${r.id}" Type="${xmlns}officeDocument/2006/relationships/${r.type}" Target="${r.target}"/>`).join('')}</Relationships>`);
@@ -165,6 +174,6 @@
     zip.file('[Content_Types].xml', `<?xml version="1.0"?><Types xmlns="${xmlns}package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Default Extension="svg" ContentType="image/svg+xml"/><Default Extension="png" ContentType="image/png"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/></Types>`);
     return zip.generateAsync({ type: 'uint8array', compression: 'DEFLATE' });
   }
-  const api = { scene, geometry, labelGeometry, svg, pptx, docx, iconFor };
+  const api = { scene, geometry, labelGeometry, svg, pptx, docx, iconFor, attribution };
   if (nodeEnv) module.exports = api; else root.ModellerOffice = api;
 })(globalThis);

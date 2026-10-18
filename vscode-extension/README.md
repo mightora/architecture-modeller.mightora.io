@@ -6,6 +6,8 @@ The extension bundles the same application code as [the website](https://archite
 
 ## Use it
 
+Use **Build your first model** for the eight-step canvas guide, **Help & glossary** for modelling concepts, or load the completed first-model example. **Review model** provides prompts for missing context and mappings. The component editor includes 44 searchable Microsoft, AWS and general architecture icons with collection-specific attribution.
+
 1. Run **Mightora: New Architecture Model** or **Mightora: Open Architecture Model** from the Command Palette.
 2. Use names such as `solution.architecture.json` or `solution.architecture.yaml` to open automatically in the modeller. Other JSON/YAML names work through the Open command or **Reopen Editor With → Mightora Architecture Modeller**.
 3. Edit with the same hierarchy, mappings, layers and saved views as online. Changes update the workspace text document. Use **Ctrl+S / Cmd+S**, or VS Code Auto Save, to persist it. Source Control sees ordinary text changes.
@@ -17,7 +19,7 @@ All model processing stays inside the webview. Its Content Security Policy block
 
 ## Install a packaged build
 
-Download `mightora-architecture-modeller-0.4.0.vsix` from the website's Downloads section or a GitHub build artifact. Run **Extensions: Install from VSIX** and select it. For browser VS Code, use that command where available; publishing to the Marketplace is the normal installation route for wider distribution. The manifest has a `browser` entry point.
+Download `mightora-architecture-modeller-0.5.0.vsix` from the website's Downloads section or a GitHub build artifact. Run **Extensions: Install from VSIX** and select it. For browser VS Code, use that command where available; publishing to the Marketplace is the normal installation route for wider distribution. The manifest has a `browser` entry point.
 
 ## Build and test
 
@@ -42,13 +44,13 @@ The automated suite covers host document edits, conflict rejection, undo propaga
 The proposed publisher ID is **mightoraio**, matching other Mightora Marketplace tools. You need publishing access to that publisher; the build does not verify ownership or publish automatically.
 
 1. Sign in to <https://marketplace.visualstudio.com/manage> and select `mightoraio`, or change `publisher` in `vscode-extension/package.json` to a publisher you control.
-2. Run `npm run build`. Upload `dist/downloads/mightora-architecture-modeller-0.4.0.vsix` using **New extension → Visual Studio Code**, or the existing extension's update action for subsequent releases. Manual upload needs no repository token.
+2. Run `npm run build`. Upload `dist/downloads/mightora-architecture-modeller-0.5.0.vsix` using **New extension → Visual Studio Code**, or the existing extension's update action for subsequent releases. Manual upload needs no repository token.
 3. Alternatively, use Microsoft's packaging and publishing tool:
 
 ```sh
 cd vscode-extension
 npx @vscode/vsce package --no-dependencies
-npx @vscode/vsce publish --packagePath mightora-architecture-modeller-0.4.0.vsix
+npx @vscode/vsce publish --packagePath mightora-architecture-modeller-0.5.0.vsix
 ```
 
 Authenticate with a method currently supported by your publisher. Keep credentials out of source control. Microsoft's authentication guidance is changing around retirement of global Azure DevOps PATs; check the official publishing documentation when configuring automation.

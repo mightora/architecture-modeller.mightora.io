@@ -3,7 +3,7 @@
   "displayName": "Mightora Architecture Modeller",
   "description": "Model architecture, dependencies, business processes, stakeholders and layers in desktop VS Code and VS Code for the Web.",
   "publisher": "mightoraio",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "license": "MIT",
   "engines": { "vscode": "^1.95.0" },
   "categories": ["Visualization", "Other"],

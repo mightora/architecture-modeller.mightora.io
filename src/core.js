@@ -2,7 +2,8 @@
 (function (root) {
   'use strict';
   const VERSION = 1;
-  const ICON_IDS = ['power-apps', 'power-automate', 'dataverse', 'power-pages', 'power-bi'];
+  const ICON_CATALOG = typeof module !== 'undefined' && module.exports ? require('../assets/icon-catalog.json') : root.ModellerIconCatalog;
+  const ICON_IDS = ICON_CATALOG.map(icon => icon.id);
   const LIMITS = Object.freeze({ nodes: 3000, edges: 10000, types: 50, depth: 64, bytes: 5 * 1024 * 1024 });
   const forbidden = new Set(['__proto__', 'prototype', 'constructor']);
   const copy = value => JSON.parse(JSON.stringify(value));
@@ -33,6 +34,7 @@
     assert(input.schemaVersion === VERSION, `Unsupported model version. Expected schemaVersion ${VERSION}.`);
     const m = copy(input);
     text(m.name, 160, 'Model name', true);
+    if (m.description !== undefined) text(m.description, 4000, 'Model question and scope');
     assert(Array.isArray(m.types) && m.types.length > 0 && m.types.length <= LIMITS.types, 'Include 1–50 component types.');
     assert(Array.isArray(m.relationshipTypes) && m.relationshipTypes.length > 0 && m.relationshipTypes.length <= LIMITS.types, 'Include 1–50 relationship types.');
     assert(Array.isArray(m.nodes) && m.nodes.length <= LIMITS.nodes, 'The model supports up to 3,000 components.');

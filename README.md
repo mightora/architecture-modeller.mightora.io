@@ -18,6 +18,12 @@ Open `http://localhost:8080`. `dist/` is ready for GitHub Pages or any static ho
 
 ## What works
 
+Version 0.5 adds **Build your first model** in the editor toolbar: an eight-step guide with actions for the current canvas, a model question and scope, a worked customer-request example, a searchable glossary and advisory model review. Opening the guide preserves your model; starting blank or loading an example uses the existing replacement and undo flow.
+
+**Review model** locates missing descriptions, component owners, layers, technology support for process steps, step accountability, disconnected leaf entities and ambiguous sibling names. Review prompts depend on your chosen scope. Responsibility on a parent process is not inferred for its steps.
+
+The component editor has a searchable, previewable 44-icon catalog: 8 official Power Platform icons, 11 Azure services, 14 AWS services, 10 general Lucide symbols and the retained archived Power BI icon. The website, offline HTML, VS Code and exports use the same bundled artwork. Sources and terms are in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) and `assets/icon-catalog.json`.
+
 - Nested components with stable IDs and a single parent, independent of type.
 - Double-click / Enter / Explore inside drill-down with breadcrumbs and external context.
 - Expand several branches to different levels on the same canvas.
