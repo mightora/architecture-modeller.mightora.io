@@ -15,7 +15,7 @@ let exitCode;const result=new Promise(resolve=>child.once('exit',code=>{exitCode
 try{
   const started=Date.now();while(Date.now()-started<60000){try{browser=await chromium.connectOverCDP('http://127.0.0.1:9237');break;}catch{await new Promise(r=>setTimeout(r,200));}}
   if(!browser)throw Error('Desktop debugging endpoint did not start.');
-  const page=browser.contexts()[0].pages()[0];let frame;const frameStart=Date.now();while(Date.now()-frameStart<60000){for(const f of page.frames())if(await f.locator('#export-word').count()){frame=f;break;}if(frame)break;await page.waitForTimeout(200);}
+  const context=browser.contexts()[0],page=context.pages()[0]||await context.waitForEvent('page',{timeout:60000});let frame;const frameStart=Date.now();while(Date.now()-frameStart<60000){for(const f of page.frames())if(await f.locator('#export-word').count()){frame=f;break;}if(frame)break;await page.waitForTimeout(200);}
   if(!frame)throw Error('Desktop custom editor did not load.');
   await frame.waitForFunction(()=>document.getElementById('rename-model')?.textContent==='VSCode acceptance model');
   for(const id of ['#export-word','#export-powerpoint']){await frame.locator(id).click();await page.getByRole('button',{name:/Save export|^Save$|^OK$/}).last().click({timeout:30000});if(id==='#export-word')await page.waitForTimeout(150);}

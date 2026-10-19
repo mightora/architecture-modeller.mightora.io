@@ -12,4 +12,6 @@ The VS Code webview has no remote resource roots and a per-view nonce CSP. Messa
 
 Browser recovery storage is local to the origin/device and not encrypted by this application. Browser profile access exposes it. Export backups and choose appropriate file protections for sensitive designs. The app has no accounts or collaboration server. Website analytics retain the existing implementation and can be blocked by relevant browser privacy controls; offline/extension editions do not load the beacon.
 
+Bundled YAML, ZIP and PowerPoint libraries are pinned in the lockfile and matched byte-for-byte against installed packages by `verify:vendors`. The YAML parser is 5.5.0; a pinned image-size 2.0.4 override removes known vulnerable tooling dependencies.
+
 CodeQL, dependency scanning, imported-model checks and tests reduce particular risks and are not a security certification. Report vulnerabilities privately to the repository maintainer using GitHub's available security-reporting mechanism. Do not place confidential production architecture in a public issue.

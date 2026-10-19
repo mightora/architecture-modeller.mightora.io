@@ -10,11 +10,12 @@
     "build:offline": "npm run compile && python3 scripts/build.py && python3 scripts/build-extension.py",
     "compile": "node scripts/compile.mjs",
     "typecheck": "tsc -p tsconfig.json",
-    "lint": "node scripts/lint.mjs",
+    "lint": "node scripts/lint.mjs && npm run verify:vendors",
     "test:e2e": "playwright test",
     "validate:model": "node tools/cli/architecture.cjs",
     "test:vscode-web": "node scripts/test-vscode-web.mjs",
-    "test:vscode-desktop": "node scripts/test-vscode-desktop.mjs"
+    "test:vscode-desktop": "node scripts/test-vscode-desktop.mjs",
+    "verify:vendors": "node scripts/verify-vendors.mjs"
   },
   "engines": {
     "node": ">=20"
@@ -27,6 +28,12 @@
     "@vscode/test-web": "^0.0.81",
     "@vscode/vsce": "^4.0.0",
     "esbuild": "^0.28.2",
+    "js-yaml": "5.5.0",
+    "jszip": "3.10.1",
+    "pptxgenjs": "4.0.1",
     "typescript": "^7.0.2"
+  },
+  "overrides": {
+    "image-size": "2.0.4"
   }
 }

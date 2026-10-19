@@ -1,0 +1,23 @@
+[
+  {
+    "package": "js-yaml",
+    "version": "5.5.0",
+    "file": "assets/js-yaml.min.js",
+    "packageFile": "dist/browser/js-yaml.umd.min.js",
+    "sha256": "02970a652376ad653ff069c606ee7440b0514f52ed94a98426cb52426c8e5a02"
+  },
+  {
+    "package": "jszip",
+    "version": "3.10.1",
+    "file": "assets/jszip.min.js",
+    "packageFile": "dist/jszip.min.js",
+    "sha256": "acc7e41455a80765b5fd9c7ee1b8078a6d160bbbca455aeae854de65c947d59e"
+  },
+  {
+    "package": "pptxgenjs",
+    "version": "4.0.1",
+    "file": "assets/pptxgen.bundle.js",
+    "packageFile": "dist/pptxgen.bundle.js",
+    "sha256": "4fb9eac5cfefb213e2d8743c2b7151025f31bfb3f834c73c12062916daa0f3f8"
+  }
+]

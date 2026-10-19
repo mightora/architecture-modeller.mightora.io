@@ -15,6 +15,7 @@ Release 0.6.0 verification is tracked separately from feature implementation. CI
 - A 500-component/1,000-relationship model validates, renders, responds to search/zoom and exports all visible components. Observed Chromium canvas render time was about 0.1 seconds and semantic validation about 2–3 ms in this environment. Hardware/browser differences apply.
 - The actual `file://` offline build makes no HTTP(S) requests while modelling and generating Office files. Its ZIP is checked byte-for-byte against the standalone HTML.
 - VSIX structure, browser entry, bundled editor, commands, CSP and lack of Node filesystem imports are checked.
+- Vendor hash verification ties the actual bundled YAML/ZIP/PowerPoint libraries to audited pinned packages. The YAML parser was updated to 5.5.0 and a vulnerable transitive image-size dependency replaced.
 - `npm audit` reports no known dependency vulnerabilities at the time of the development check. CodeQL results must be read from the actual workflow.
 
 ## Release gates

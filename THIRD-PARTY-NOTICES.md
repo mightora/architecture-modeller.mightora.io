@@ -2,13 +2,13 @@
 
 - Mightora shared UI CSS, header/footer/author components and footer content: https://github.com/mightora/shared-ui. The online edition loads the official CDN URLs prescribed by the design system. The offline edition embeds a CSS snapshot fetched from the main branch on 17 October 2026, plus equivalent local header/author/footer markup. The full Mightora logo is retained for branding.
 - Logo source: https://raw.githubusercontent.com/mightora/mightora.io/main/static/images/mightoraIoLogo4-200x900.png. The bundled image is the 900 × 200 full Mightora wordmark.
-- YAML parser: js-yaml 4.1.0, Copyright Vitaly Puzrin and contributors, MIT licence, https://github.com/nodeca/js-yaml. Bundled in the online, offline and VS Code editions.
+- YAML parser: js-yaml 5.5.0, Copyright Vitaly Puzrin and contributors, MIT licence, https://github.com/nodeca/js-yaml. Bundled in the online, offline and VS Code editions.
 
 All graph rendering, modelling, examples, application code and export logic in `src/` were implemented for this application. Icons are bundled static assets. The public website embeds Cloudflare Web Analytics; offline and VS Code editions omit it and block outbound application connections.
 
 Updated export edition dependencies, embedded locally in both editions:
 
-- js-yaml 4.1.0, MIT, Vitaly Puzrin and contributors: https://github.com/nodeca/js-yaml. Full licence: assets/JS-YAML-LICENSE.txt.
+- js-yaml 5.5.0, MIT, Vitaly Puzrin and contributors: https://github.com/nodeca/js-yaml. Full licence: assets/JS-YAML-LICENSE.txt.
 - JSZip 3.10.1, dual MIT/GPLv3; used under MIT. Stuart Knightley, David Duponchel, Franz Buchinger, António Afonso and contributors. https://github.com/Stuk/jszip. Licence: assets/JSZIP-LICENSE.txt.
 - PptxGenJS 4.0.1, MIT, Brent Ely and contributors: https://github.com/gitbrent/PptxGenJS. Its browser bundle includes JSZip and polyfills. Licence: assets/PPTXGENJS-LICENSE.txt. Generated decks use native editable Office shapes and attached connectors.
 - Microsoft Power Platform: eight SVGs from the official Power-Platform-icons-scalable.zip linked at https://learn.microsoft.com/en-us/power-platform/guidance/icons. Microsoft permits architectural diagrams, training materials and documentation; copying, distribution and display are limited to those permitted uses unless separately authorised. Microsoft reserves other rights, including trademark rights.
@@ -20,3 +20,5 @@ Updated export edition dependencies, embedded locally in both editions:
 assets/icon-catalog.json records each icon's collection, terms URL, source archive or original URL, member path and SHA-256 of the unchanged SVG. PNG fallbacks preserve proportions. The curated 44-icon set is a subset of the source collections. scripts/import-icon-packs.py and scripts/rasterize-icons.cjs document acquisition and conversion. Normal builds use committed assets without contacting icon providers. The code licence does not replace asset terms; inclusion does not imply vendor endorsement.
 
 Brand assets remain Mightora's branding; the MIT licence does not grant trademark rights or imply endorsement of third-party modifications.
+
+Bundled JS libraries are pinned in package.json/package-lock.json and assets/vendor-lock.json. CI verifies exact distribution hashes against the installed audited packages. The browser YAML bundle comes from js-yaml/browser; its full MIT notice remains in assets/JS-YAML-LICENSE.txt.
