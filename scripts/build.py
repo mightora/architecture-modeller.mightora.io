@@ -81,9 +81,9 @@ def main():
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/mightora/shared-ui@main/shared.css">
 <script>if(window.fetch){const originalFetch=window.fetch.bind(window);window.fetch=async(...args)=>{const response=await originalFetch(...args);const url=typeof args[0]==='string'?args[0]:args[0]?.url||'';if(url.includes('footer.yaml')&&response.ok){const raw=await response.clone().text();return new Response(raw.replace(/\\t/g,'  '),{status:response.status,headers:response.headers});}return response;};}</script>
 <script defer src="https://cdn.jsdelivr.net/gh/mightora/shared-ui@main/components.js"></script>
-<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token":"54355574b7594d3d9d9946038d33925a"}'></script>'''
+<script type="module">const beaconUrl='https://static.cloudflareinsights.com/beacon.min.js';if(!Array.from(document.scripts).some(script=>script.src.startsWith(beaconUrl))){const beacon=document.createElement('script');beacon.type='module';beacon.src=beaconUrl;beacon.dataset.cfBeacon=JSON.stringify({token:'54355574b7594d3d9d9946038d33925a'});document.head.append(beacon);}</script>'''
     online = template.replace('<!--EDITION_HEAD-->', online_head).replace('<!--EDITION_LABEL-->', 'LOCAL MODEL PROCESSING')
-    assert online.count('src="https://static.cloudflareinsights.com/beacon.min.js"') == 1
+    assert online.count("const beaconUrl='https://static.cloudflareinsights.com/beacon.min.js'") == 1
     (DIST / 'index.html').write_text(online)
     (DIST / 'CNAME').write_text('architecture-modeller.mightora.io\n')
     (DIST / '.nojekyll').write_text('')
