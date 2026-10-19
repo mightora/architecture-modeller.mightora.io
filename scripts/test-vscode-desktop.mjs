@@ -18,7 +18,7 @@ try{
   const page=browser.contexts()[0].pages()[0];let frame;const frameStart=Date.now();while(Date.now()-frameStart<60000){for(const f of page.frames())if(await f.locator('#export-word').count()){frame=f;break;}if(frame)break;await page.waitForTimeout(200);}
   if(!frame)throw Error('Desktop custom editor did not load.');
   await frame.waitForFunction(()=>document.getElementById('rename-model')?.textContent==='VSCode acceptance model');
-  for(const id of ['#export-word','#export-powerpoint']){await frame.locator(id).click();await page.getByRole('button',{name:/Save export|^Save$|^OK$/}).last().click({timeout:30000});await page.waitForTimeout(250);}
+  for(const id of ['#export-word','#export-powerpoint']){await frame.locator(id).click();await page.getByRole('button',{name:/Save export|^Save$|^OK$/}).last().click({timeout:30000});if(id==='#export-word')await page.waitForTimeout(150);}
   const code=await Promise.race([result,new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('Desktop host test timed out.')),90000);})]);clearTimeout(timer);
   await fs.writeFile('artifacts/vscode-desktop-results.json',JSON.stringify({passed:code===0,host:'VS Code Stable Desktop',logs},null,2));
   if(code!==0)throw Error('Desktop suite exited '+code);console.log('Verified actual VS Code Desktop editor, saves, diagnostics and Office exports.');
