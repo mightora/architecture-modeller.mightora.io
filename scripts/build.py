@@ -94,6 +94,9 @@ def main():
     offline_shared_css = re.sub(r"background-image:\s*url\(['\"]https://[^)]+\);", 'background-image: none;', (ROOT / 'assets/shared.css').read_text())
     offline = offline.replace('<style>', '<style>' + offline_shared_css, 1)
     offline = offline.replace('./mightora-logo.png', logo)
+    for name in ['ian-tweedie.png', 'techtweedie-logo.png']:
+        embedded = 'data:image/png;base64,' + base64.b64encode((ROOT / 'assets' / name).read_bytes()).decode()
+        offline = offline.replace('./' + name, embedded)
     offline = offline.replace('https://raw.githubusercontent.com/mightora/mightora.io/main/static/images/mightoraIoLogo4-200x900.png', logo)
     offline = offline.replace('<title>Mightora Architecture Modeller', '<title>Offline — Mightora Architecture Modeller')
     offline = re.sub(r'<div class="download-actions">.*?</div>', '<div class="download-actions"><button type="button" class="button primary" data-action="save-offline-copy">Save this HTML ↓</button><button type="button" class="button" data-action="export-json">Save model JSON ↓</button></div>', offline, count=1, flags=re.S)
@@ -131,6 +134,8 @@ Full source, maintenance instructions and GitHub workflows are in the separate s
     with zipfile.ZipFile(DIST / 'downloads/mightora-architecture-modeller-offline.zip') as z:
         assert z.read('index.html') == offpath.read_bytes(), 'ZIP contains stale HTML'
     shutil.copyfile(ROOT / 'assets/mightora-logo.png', DIST / 'mightora-logo.png')
+    for name in ['ian-tweedie.png', 'techtweedie-logo.png']:
+        shutil.copyfile(ROOT / 'assets' / name, DIST / name)
     shutil.copyfile(ROOT / 'assets/footer.yaml', DIST / 'footer.yaml')
     shutil.copyfile(ROOT / 'LICENSE', DIST / 'LICENSE')
     (DIST / 'verification.json').write_text(json.dumps(report, indent=2))

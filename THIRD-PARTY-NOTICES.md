@@ -2,6 +2,7 @@
 
 - Mightora shared UI CSS, header/footer/author components and footer content: https://github.com/mightora/shared-ui. The online edition loads the official CDN URLs prescribed by the design system. The offline edition embeds a CSS snapshot fetched from the main branch on 17 October 2026, plus equivalent local header/author/footer markup. The full Mightora logo is retained for branding.
 - Logo source: https://raw.githubusercontent.com/mightora/mightora.io/main/static/images/mightoraIoLogo4-200x900.png. The bundled image is the 900 × 200 full Mightora wordmark.
+- Author portrait and TechTweedie logo: the unchanged artwork prescribed by the Mightora design system, from https://techtweedie.github.io/images/author/ian-tweedie-sq2_hu_a380911c6f4726de.png and https://raw.githubusercontent.com/TechTweedie/techtweedie.github.io/v2/assets/images/site/main-logo.png. Bundled locally for online/offline consistency. Ian Tweedie/TechTweedie retain rights to their branding; the code licence does not grant trademark rights.
 - YAML parser: js-yaml 5.5.0, Copyright Vitaly Puzrin and contributors, MIT licence, https://github.com/nodeca/js-yaml. Bundled in the online, offline and VS Code editions.
 
 All graph rendering, modelling, examples, application code and export logic in `src/` were implemented for this application. Icons are bundled static assets. The public website embeds Cloudflare Web Analytics; offline and VS Code editions omit it and block outbound application connections.
