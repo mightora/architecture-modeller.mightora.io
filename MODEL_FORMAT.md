@@ -1,4 +1,6 @@
-# Model format, version 1
+# Architecture model file format
+
+Schema version 2 is the current format. The original core fields below remain compatible; version 2 additions and migration rules follow.
 
 Optional top-level `description` (up to 4,000 characters) records the question, audience and scope. JSON/YAML retain it; Word reports and PowerPoint notes include it. Older files remain compatible.
 
@@ -37,4 +39,45 @@ Projection never changes the saved edge endpoints. The inspector and relationshi
 
 Imports validate required collections, IDs, types, colours, shapes, parent existence/cycles, endpoints, relationship rules and text limits. Stored positions are sanitized. Rendered names and labels are HTML/XML escaped; property values are text only. CSV cells beginning with spreadsheet formula prefixes are escaped. Script, markup and network URL fields are not evaluated.
 
-Maximums are documented in the UI and `src/core.js`. The format accepts large models, but browsing a focused view is recommended; no large-model render benchmark has been performed.
+Maximums are documented in the UI and `src/core.js`. The format accepts large models, but browsing a focused view is recommended; the verification guide records a 500-component/1,000-relationship benchmark.
+
+# Schema version 2
+
+Version 2 is the canonical output. Both version 1 and 2 can be imported; unsupported future versions fail clearly. The migration copies the input, changes its schema version and retains existing entity/relationship IDs, properties, views, icons and extension fields. It does not invent ownership or infer architecture. Website, extension and CLI share this migration and the same validation boundary.
+
+The preferred extension is `.archmodel.json`. YAML uses the same information model. Legacy `.architecture.json/.yaml/.yml` files still open in the extension.
+
+## Additional semantic fields
+
+- Model: optional `id`, `documentation`, `metadata`, `policy`, `decisions`.
+- Entity: optional `documentation`, `sourceLinks`, `decisionIds`, `viewpoints`, `activityType`, `swimlane`.
+- Relationship: optional `documentation` for protocols, direction/pattern, authentication and other notes.
+- Structured documentation maps human-readable keys to text values, with at most 80 keys of 80 characters and values up to 12,000 characters. Core legacy property limits remain unchanged.
+- Source link: `label`, `kind` (repository/file/api/infrastructure/pipeline/documentation/adr), `target`, optional positive `line`. Targets are safe HTTP(S) URLs or workspace-relative paths without traversal/control characters.
+- ADR: safe stable `id`, `title`, `status` (proposed/accepted/deprecated/superseded), ISO `date`, `context`, `decision`, `alternatives`, `consequences`, `componentIds`. Up to 500 records. Components may also reference `decisionIds`.
+- `viewpoints` selects technical projections. Absence preserves legacy visibility. `activityType` is descriptive activity/decision/start/end metadata; swimlane is a text label.
+
+## Additional view fields
+
+`perspective` supports application, data, infrastructure, security, integration, deployment and custom in addition to solution/process/stakeholder/layers/traceability/all. Optional `includedIds`, `typeIds`, `hiddenIds`, `swimlanes`, `routing` (curved/straight/orthogonal), and `routes` configure a projection. `routes` maps an exact relationship ID to at most 20 finite bounded canvas points. Layout positions may include width 180–1,200 and height 124–1,000; default dimensions remain compatible.
+
+Master entities remain in `nodes`; views never clone them. Layout does not change exact endpoint references. Removing a branch repairs view/ADR references, removes incident links and retains other entity identities.
+
+## Governance policy
+
+```json
+{
+  "rules": {"owner": {"enabled": true, "severity": "warning"}},
+  "approvedTechnologies": ["Power Apps", "Dataverse"],
+  "prohibitedDependencies": [{"sourceType": "presentation", "targetType": "data"}],
+  "breaking": {"removals": true, "classificationChanges": true, "technologyChanges": false}
+}
+```
+
+Rules return findings and remediation rather than changing the model. Policy-defined breaking changes are distinct from inferred API compatibility. See the validation guide for actual field matching.
+
+## Canonical JSON and diffs
+
+The exporter writes two-space indentation, sorted object keys and stable ID ordering for unordered entity collections. View/layer order remains meaningful. The semantic comparer ignores positions, camera, routing and expansion state while retaining view scope/filter changes. Layout-only changes can therefore be reviewed separately from architecture changes. `.archmodel.json` remains an ordinary UTF-8 text file for Git.
+
+All imports receive recursive reserved-key/complexity checks before migration and the existing graph validation afterwards. The TypeScript interfaces in `packages/schema/types.ts` and executable validators define the authoritative format. Arbitrary model HTML/SVG/code is never executed.

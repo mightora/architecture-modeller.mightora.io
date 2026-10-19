@@ -9,11 +9,11 @@
   let camera = null, homeCamera = null, undoStack = [], redoStack = [], drag = null, pendingPositions = null, toastTimer;
   let saveFailure = '', initialWarning = '';
   let activeNamedView = null, viewPositions = null, relationshipTypeIds = null, showExternal = true;
-  let perspective = 'solution', processId = null, selectedLayerIds = null;
-  let guideVisible = false, guideStep = 0;
-  const perspectiveNames = { solution: 'Solution architecture', process: 'Business processes', stakeholder: 'Stakeholder responsibilities', layers: 'Application layers', traceability: 'Business traceability', all: 'All entities' };
-  function viewSpec() { return { focus, expanded: [...expanded], relationshipTypeIds, showExternal, perspective, processId, layerIds: selectedLayerIds }; }
-  function changePerspective(value) { perspective = value; focus = null; selected = null; expanded = new Set(); processId = null; selectedLayerIds = null; camera = null; viewPositions = null; activeNamedView = null; render(); }
+  let perspective = 'solution', processId = null, selectedLayerIds = null, viewExtras = {};
+  let guideVisible = false, guideStep = 0, lastPointerNode = null, alignmentGuides = [];
+  const perspectiveNames = { application:'Application architecture',data:'Data architecture',infrastructure:'Infrastructure architecture',security:'Security architecture',integration:'Integration architecture',deployment:'Deployment architecture',custom:'Custom viewpoint', solution: 'Solution architecture', process: 'Business processes', stakeholder: 'Stakeholder responsibilities', layers: 'Application layers', traceability: 'Business traceability', all: 'All entities' };
+  function viewSpec() { return { focus, expanded: [...expanded], relationshipTypeIds, showExternal, perspective, processId, layerIds: selectedLayerIds, ...viewExtras }; }
+  function changePerspective(value) { viewExtras = {}; perspective = value; focus = null; selected = null; expanded = new Set(); processId = null; selectedLayerIds = null; camera = null; viewPositions = null; activeNamedView = null; render(); }
   if (!HOST) try { const saved = localStorage.getItem(STORAGE); if (saved) model = M.parse(saved); } catch (e) { initialWarning = `Saved model could not be loaded: ${e.message} The example is shown. Your stored file has not been overwritten.`; saveFailure = initialWarning; }
   function toast(message) { clearTimeout(toastTimer); el('toast').textContent = message; el('toast').hidden = false; toastTimer = setTimeout(() => { el('toast').hidden = true; }, 6500); }
   function persist() {
@@ -28,15 +28,16 @@
     if (focus && !model.nodes.some(n => n.id === focus)) focus = null;
     if (selected && !model.nodes.some(n => n.id === selected)) selected = null;
     selectedGroup = null; trace = null; pendingPositions = null;
-    if (replaceModel) { activeNamedView = null; relationshipTypeIds = null; showExternal = true; viewPositions = null; perspective = 'solution'; processId = null; selectedLayerIds = null; }
+    if (replaceModel) { window.dispatchEvent(new CustomEvent('modeller-replaced')); viewExtras = {}; activeNamedView = null; relationshipTypeIds = null; showExternal = true; viewPositions = null; perspective = 'solution'; processId = null; selectedLayerIds = null; }
     if (processId && !model.nodes.some(n => n.id === processId && D.kind(n) === 'process')) processId = null;
     if (selectedLayerIds) selectedLayerIds = selectedLayerIds.filter(id => (model.layers || []).some(l => l.id === id));
     if (activeNamedView && !(model.namedViews || []).some(v => v.id === activeNamedView)) activeNamedView = null;
     if (relationshipTypeIds !== null) relationshipTypeIds = relationshipTypeIds.filter(id => model.relationshipTypes.some(t => t.id === id));
     if (resetView) { camera = null; viewPositions = null; }
-    persist(); render(); if (message) toast(message);
+    persist(); render(); window.dispatchEvent(new CustomEvent('modeller-changed')); if (message) toast(message);
   }
   function history(direction) {
+    if(HOST?.undo){HOST.undo(direction);return;}
     const from = direction === 'undo' ? undoStack : redoStack, to = direction === 'undo' ? redoStack : undoStack;
     if (!from.length) return; to.push(JSON.stringify(model)); model = M.parse(from.pop()); focus = model.nodes.some(n => n.id === focus) ? focus : null; selected = null; selectedGroup = null; trace = null; expanded = new Set(); camera = null; viewPositions = null; activeNamedView = null; relationshipTypeIds = null; showExternal = true; persist(); render();
   }
@@ -49,7 +50,7 @@
     }
     for (const group of el('graph').querySelectorAll('[data-group]')) group.classList.toggle('selected', group.dataset.group === selectedGroup);
   }
-  function select(nodeId) { selected = nodeId; selectedGroup = null; trace = null; updateSelectionStyles(); renderInspector(); renderTree(); }
+  function select(nodeId) { selected = nodeId; window.dispatchEvent(new CustomEvent('modeller-selected', {detail:nodeId})); selectedGroup = null; trace = null; updateSelectionStyles(); renderInspector(); renderTree(); }
   function childrenOf(nodeId) { return model.nodes.filter(n => n.parentId === nodeId); }
   function typeOf(node) { return model.types.find(t => t.id === node.typeId); }
   function relationOf(edge) { return model.relationshipTypes.find(t => t.id === edge.typeId); }
@@ -63,12 +64,12 @@
     el('rename-model').textContent = model.name; el('node-count').textContent = model.nodes.length;
     el('model-stats').textContent = `${model.nodes.length} entities · ${model.edges.length} relationships · One connected model`;
     el('perspective').value = perspective;
-    el('undo').disabled = !undoStack.length; el('redo').disabled = !redoStack.length;
+    el('undo').disabled = HOST ? false : !undoStack.length; el('redo').disabled = HOST ? false : !redoStack.length;
     if (saveFailure) el('save-state').textContent = saveFailure;
     el('scope-title').textContent = focus ? model.nodes.find(n => n.id === focus).name : perspectiveNames[perspective];
     el('scope-subtitle').textContent = `${perspectiveNames[perspective]}${processId ? ' · ' + M.path(model,processId) : ''}${selectedLayerIds !== null ? ' · Layer filter active' : ''} · Double-click a block to explore.`;
     el('up-level').disabled = focus === null;
-    renderBreadcrumb(); renderTree(); renderRelations(); renderGraph(); renderInspector(); updateExplorerButton(); renderSavedViews(); renderGuidance();
+    renderBreadcrumb(); renderTree(); renderRelations(); renderGraph(); renderInspector(); updateExplorerButton(); renderSavedViews(); renderGuidance(); window.dispatchEvent(new CustomEvent('modeller-rendered'));
   }
   function renderBreadcrumb() {
     const { nodes } = M.index(model); let n = nodes.get(focus); const ancestors = [];
@@ -126,7 +127,8 @@
     } else {
       const sign = dy >= 0 ? 1 : -1; p1 = [a.x + a.w / 2 + offset, a.y + (sign > 0 ? a.h : 0)]; p2 = [b.x + b.w / 2 + offset, b.y + (sign > 0 ? 0 : b.h)]; const bend = Math.max(50, Math.abs(p2[1] - p1[1]) * .5); c1 = [p1[0], p1[1] + sign * bend]; c2 = [p2[0], p2[1] - sign * bend];
     }
-    const path = `M${p1.join(' ')} C${c1.join(' ')} ${c2.join(' ')} ${p2.join(' ')}`;
+    const manual = viewExtras.routes?.[group.edges[0]?.id];
+    const path = manual?.length ? 'M'+p1.join(' ')+' L'+manual.map(p=>p.x+' '+p.y).join(' L')+' L'+p2.join(' ') : viewExtras.routing==='straight' ? 'M'+p1.join(' ')+' L'+p2.join(' ') : viewExtras.routing==='orthogonal' ? 'M'+p1.join(' ')+' L'+[(p1[0]+p2[0])/2,p1[1]].join(' ')+' L'+[(p1[0]+p2[0])/2,p2[1]].join(' ')+' L'+p2.join(' ') : `M${p1.join(' ')} C${c1.join(' ')} ${c2.join(' ')} ${p2.join(' ')}`;
     const lx = (p1[0] + 3 * c1[0] + 3 * c2[0] + p2[0]) / 8, ly = (p1[1] + 3 * c1[1] + 3 * c2[1] + p2[1]) / 8;
     const roles = [...new Set(group.edges.map(e => e.role).filter(Boolean))].join('/');
     const label = `${group.edges.length > 1 ? group.edges.length + ' × ' : ''}${rt.name}${roles ? ' · ' + roles : ''}`.slice(0, 48), width = label.length * 5.3 + 18;
@@ -138,6 +140,7 @@
     const nodeMap = new Map(diagram.nodes.map(n => [n.id, n]));
     el('graph').innerHTML = `<defs>${projection.edges.map((g, i) => `<marker id="arrow-${i}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 1L9 5L0 9" fill="none" stroke="${relationOf(g).color}" stroke-width="1.5"/></marker>`).join('')}</defs><title>${esc(model.name)} — ${esc(focus ? M.path(model, focus) : 'overview')}</title>` + diagram.nodes.filter(n => n.expanded).map(n => nodeMarkup(n, true)).join('') + projection.edges.map((g, i) => edgeMarkup(g, nodeMap, i)).join('') + diagram.nodes.map(n => nodeMarkup(n)).join('');
     el('graph').insertAdjacentHTML('afterbegin', (diagram.bands || []).map(b => `<g aria-label="${esc(b.name)} layer"><rect x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" rx="12" fill="var(--graph-highlight)" stroke="${b.color}"/><text x="${b.x + 20}" y="${b.y + 27}" fill="${b.color}" font-size="16" font-weight="650">${esc(b.name)}</text><text x="${b.x + 20}" y="${b.y + 47}" fill="var(--graph-muted)" font-size="11">${esc(b.description.slice(0, 125))}</text></g>`).join(''));
+    if(alignmentGuides.length) el('graph').insertAdjacentHTML('beforeend',alignmentGuides.map(g=>`<line x1="${g.x1}" y1="${g.y1}" x2="${g.x2}" y2="${g.y2}" stroke="#6366f1" stroke-width="1.5" stroke-dasharray="6 4" pointer-events="none"/>`).join(''));
     el('empty-canvas').hidden = diagram.nodes.length > 0;
     el('legend').innerHTML = [...new Set(diagram.nodes.map(n => n.typeId))].map(typeId => { const t = model.types.find(x => x.id === typeId); return `<span><i class="type-dot" style="--type-color:${t.color}"></i>${esc(t.name)}</span>`; }).join('');
     const internal = diagram.nodes.filter(n => !n.external && !n.isScope).length, external = diagram.nodes.filter(n => n.external).length;
@@ -153,7 +156,7 @@
     let w = box.w, h = box.h; if (w / h < aspect) w = h * aspect; else h = w / aspect;
     camera = { x: box.x - (w - box.w) / 2, y: box.y - (h - box.h) / 2, w, h }; homeCamera = { ...camera }; applyCamera();
   }
-  function applyCamera() { if (!camera) return; el('graph').setAttribute('viewBox', `${camera.x} ${camera.y} ${camera.w} ${camera.h}`); el('zoom-label').textContent = `${Math.round((homeCamera?.w || camera.w) / camera.w * 100)}%`; }
+  function applyCamera() { if (!camera) return; el('graph').setAttribute('viewBox', `${camera.x} ${camera.y} ${camera.w} ${camera.h}`); el('zoom-label').textContent = `${Math.round((homeCamera?.w || camera.w) / camera.w * 100)}%`; window.dispatchEvent(new CustomEvent('modeller-camera')); }
   function zoom(factor, point = null) {
     if (!camera) return; const ratio = Math.max(.1, Math.min(5, (homeCamera?.w || camera.w) / (camera.w * factor))); const actual = (homeCamera?.w || camera.w) / (ratio * camera.w);
     const cx = point?.x ?? camera.x + camera.w / 2, cy = point?.y ?? camera.y + camera.h / 2;
@@ -281,9 +284,9 @@
   }
   function locate(nodeId) { const n = model.nodes.find(n => n.id === nodeId); if (!n) return; perspective = D.kind(n) === 'component' ? 'solution' : D.kind(n) === 'process' ? 'process' : 'stakeholder'; processId = null; selectedLayerIds = null; focus = n.parentId; expanded = new Set(); selected = nodeId; selectedGroup = null; trace = null; camera = null; viewPositions = null; activeNamedView = null; let p = n.parentId; while (p) { treeOpen.add(p); p = model.nodes.find(n => n.id === p)?.parentId; } render(); }
   function expandNode(nodeId) { if (expanded.has(nodeId)) expanded.delete(nodeId); else expanded.add(nodeId); camera = null; viewPositions = null; activeNamedView = null; renderGraph(); renderSavedViews(); }
-  function download(content, filename, type) { if (HOST) { HOST.download(content,filename,type); return; } const blob = new Blob([content], { type }), url = URL.createObjectURL(blob), link = document.createElement('a'); link.href = url; link.download = filename; document.body.append(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000); }
+  function download(content, filename, type) { if (HOST) return HOST.download(content,filename,type); const blob = new Blob([content], { type }), url = URL.createObjectURL(blob), link = document.createElement('a'); link.href = url; link.download = filename; document.body.append(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000); }
   function filename(suffix) { return (model.name.toLocaleLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 80) || 'architecture') + suffix; }
-  function exportJSON() { download(JSON.stringify(model, null, 2), filename('.json'), 'application/json'); }
+  function exportJSON() { download(globalThis.ModellerPlatform.canonical(model), filename('.archmodel.json'), 'application/json'); }
   function exportCSV() {
     const cell = value => { const s = String(value ?? ''); return '"' + (/^[=+@\-\t\r\n]/.test(s) ? "'" : '') + s.replace(/"/g, '""') + '"'; };
     const rows = [['Source ID', 'Source path', 'Source category', 'Relationship', 'RACI role', 'Label', 'Target ID', 'Target path', 'Target category', 'Notes'], ...model.edges.map(e => [e.source, M.path(model, e.source), D.kind(model.nodes.find(n => n.id === e.source)), relationOf(e).name, D.roleLabel(e), e.label, e.target, M.path(model, e.target), D.kind(model.nodes.find(n => n.id === e.target)), e.description])];
@@ -310,7 +313,7 @@
     return `<g class="${cls}" transform="translate(${n.x} ${n.y})" data-node="${esc(n.id)}" tabindex="0" role="button" aria-label="${esc(label)}"><title>${esc(label)} · ${esc(icon.name)}</title>${n.expanded ? `<rect width="${n.w}" height="55" fill="transparent"/>` : `<rect class="node-body" width="${n.w}" height="${n.h}" rx="${radius}" fill="var(--graph-surface)" stroke="var(--graph-line)"/><rect x="0" y="15" width="4" height="${n.h - 30}" rx="2" fill="${t.color}"/>`}<image href="${icon.svg}" x="15" y="${n.expanded ? 12 : 16}" width="26" height="26" preserveAspectRatio="xMidYMid meet"/>${n.expanded ? `<text x="49" y="31" class="node-title" style="font-size:13px">${esc(titleLines[0])}</text>` : `<text x="49" y="33" class="node-type" fill="${t.color}">${esc(t.name.toUpperCase().slice(0, 27))}</text><text x="18" y="62" class="node-title">${titleLines.map((line, i) => `<tspan x="18" dy="${i ? 19 : 0}">${esc(line)}</tspan>`).join('')}</text><text x="18" y="107" class="node-meta">${n.external ? 'EXTERNAL CONTEXT ↗' : `${kids ? `${kids} components inside` : esc(icon.name)}${hidden ? ` · ${hidden} internal links` : ''}`}</text>`}${kids && !n.isScope && !n.external ? `<g data-action="expand-node" data-id="${esc(n.originalId || n.id)}" role="button" tabindex="0" aria-label="${n.expanded ? 'Collapse' : 'Expand'} ${esc(n.name)} here"><rect x="${n.w - 33}" y="${n.expanded ? 12 : 88}" width="24" height="24" rx="5" fill="var(--graph-highlight)" stroke="var(--graph-line)"/><text x="${n.w - 21}" y="${n.expanded ? 29 : 105}" text-anchor="middle" fill="var(--accent-hover)" font-size="16">${n.expanded ? '−' : '+'}</text></g>` : ''}</g>`;
   }
   function snapshot(name = null) {
-    return { id: M.id('view'), name: name || (focus ? model.nodes.find(n => n.id === focus).name : perspectiveNames[perspective]), description: '', ...viewSpec(), positions: Object.fromEntries(diagram.nodes.filter(n => !n.external).map(n => [n.id, { x: n.x, y: n.y }])), ...(camera ? { camera: { ...camera } } : {}) };
+    return { id: M.id('view'), name: name || (focus ? model.nodes.find(n => n.id === focus).name : perspectiveNames[perspective]), description: '', ...viewSpec(), positions: Object.fromEntries(diagram.nodes.filter(n => !n.external).map(n => [n.id, { x: n.x, y: n.y, w:n.w, h:n.h }])), ...(camera ? { camera: { ...camera } } : {}) };
   }
   function renderSavedViews() { el('saved-view').innerHTML = '<option value="">Saved views…</option>' + options(model.namedViews || [], activeNamedView); el('save-view').textContent = activeNamedView ? 'Save / update view' : 'Save view'; }
   function saveView() {
@@ -323,6 +326,7 @@
   }
   function loadView(id) {
     const v = (model.namedViews || []).find(v => v.id === id); if (!v) return;
+    viewExtras = Object.fromEntries(['includedIds','typeIds','hiddenIds','routing','routes','swimlanes'].filter(k=>v[k]!==undefined).map(k=>[k,M.copy(v[k])]));
     perspective = v.perspective || 'solution'; processId = v.processId || null; selectedLayerIds = v.layerIds == null ? null : [...v.layerIds];
     focus = v.focus; expanded = new Set(v.expanded); relationshipTypeIds = v.relationshipTypeIds == null ? null : [...v.relationshipTypeIds]; showExternal = v.showExternal; viewPositions = M.copy(v.positions); camera = v.camera ? { ...v.camera } : null; homeCamera = camera ? { ...camera } : null; selected = null; selectedGroup = null; trace = null; activeNamedView = id;
     if (el('dialog').open) closeDialog(); render();
@@ -443,7 +447,7 @@
   el('save-view').onclick = saveView; el('manage-views').onclick = manageViews; el('view-filters').onclick = filterView; el('export-pack').onclick = exportPack;
   el('saved-view').onchange = event => { if (event.target.value) loadView(event.target.value); };
   el('export-yaml').onclick = () => { try { download(globalThis.ModellerFormats.dump(model), filename('.yaml'), 'text/yaml;charset=utf-8'); } catch (e) { toast(e.message); } };
-  el('graph').addEventListener('dblclick', event => { if (event.target.closest('[data-action]')) return; const node = event.target.closest('[data-node]'); if (node) { const n = diagram.nodes.find(n => n.id === node.dataset.node); setFocus(n.originalId || n.id); } });
+  el('graph').addEventListener('dblclick', event => { if (event.target.closest('[data-action]')) return; const node = event.target.closest('[data-node]'); const n = diagram.nodes.find(n => n.id === (node?.dataset.node || lastPointerNode)); if(n) setFocus(n.originalId || n.id); });
   el('graph').addEventListener('click', event => { if (event.target.closest('[data-action]')) return; const group = event.target.closest('[data-group]'); if (group) { selectedGroup = group.dataset.group; selected = null; trace = null; updateSelectionStyles(); renderInspector(); } });
   el('graph').addEventListener('keydown', event => {
     if (!['Enter', ' '].includes(event.key)) return;
@@ -454,8 +458,9 @@
   el('graph').addEventListener('pointerdown', event => {
     if (event.button !== 0 || event.target.closest('[data-action]') || event.target.closest('[data-group]') || !camera) return;
     const nodeElement = event.target.closest('[data-node]'), n = diagram.nodes.find(n => n.id === nodeElement?.dataset.node), point = graphPoint(event);
+    lastPointerNode = n?.id || null;
     drag = { pointerId: event.pointerId, start: point, startClient: { x: event.clientX, y: event.clientY }, camera: { ...camera }, node: n, moved: false, positions: M.copy(viewPositions || model.views[viewKey()]?.positions || {}) };
-    if (n && !n.external) { drag.original = { x: n.x, y: n.y }; drag.children = perspective === 'layers' ? [] : diagram.nodes.filter(c => M.descendants(model, n.id).has(c.id)).map(c => ({ id: c.id, x: c.x, y: c.y })); }
+    if (n && !n.external) { drag.original = { x: n.x, y: n.y }; drag.children = diagram.nodes.filter(c => c.id !== n.id && ((perspective !== 'layers' && M.descendants(model,n.id).has(c.id)) || globalThis.ModellerEditor?.multi?.has(c.id))).map(c => ({ id: c.id, x: c.x, y: c.y })); }
     el('graph').setPointerCapture(event.pointerId); if (!n) el('graph').classList.add('panning');
   });
   el('graph').addEventListener('pointermove', event => {
@@ -463,9 +468,11 @@
     if (Math.hypot(event.clientX - drag.startClient.x, event.clientY - drag.startClient.y) < 5 && !drag.moved) return;
     drag.moved = true; const point = graphPoint(event), dx = point.x - drag.start.x, dy = point.y - drag.start.y;
     if (drag.node && !drag.node.external) {
-      let x = drag.original.x + dx, y = drag.original.y + dy; const parent = diagram.nodes.find(n => n.id === drag.node.parentVisible);
+      let x = globalThis.ModellerPlatform.snap(drag.original.x + dx, globalThis.ModellerEditor?.snap !== false), y = globalThis.ModellerPlatform.snap(drag.original.y + dy, globalThis.ModellerEditor?.snap !== false); const parent = diagram.nodes.find(n => n.id === drag.node.parentVisible);
       if (perspective === 'layers') { const band = diagram.bands.find(b => drag.original.y >= b.y && drag.original.y < b.y + b.h); if (band) { x = Math.max(band.x+12,Math.min(band.x+band.w-drag.node.w-12,x)); y = Math.max(band.y+60,Math.min(band.y+band.h-drag.node.h-12,y)); } }
       if (parent) { x = Math.max(parent.x + 12, Math.min(parent.x + parent.w - drag.node.w - 12, x)); y = Math.max(parent.y + 65, Math.min(parent.y + parent.h - drag.node.h - 12, y)); }
+      alignmentGuides = [];
+      for(const peer of diagram.nodes.filter(n=>n.id!==drag.node.id&&!drag.children.some(c=>c.id===n.id))){if(Math.abs(peer.x-x)<8){x=peer.x;alignmentGuides.push({x1:x,y1:Math.min(y,peer.y)-40,x2:x,y2:Math.max(y+drag.node.h,peer.y+peer.h)+40});}if(Math.abs(peer.y-y)<8){y=peer.y;alignmentGuides.push({x1:Math.min(x,peer.x)-40,y1:y,x2:Math.max(x+drag.node.w,peer.x+peer.w)+40,y2:y});}}
       const actualX = x - drag.original.x, actualY = y - drag.original.y; pendingPositions = { ...drag.positions, [drag.node.id]: { x, y } };
       for (const c of drag.children) pendingPositions[c.id] = { x: c.x + actualX, y: c.y + actualY };
       renderGraph();
@@ -474,7 +481,7 @@
     }
   });
   const finishDrag = event => {
-    if (!drag || event.pointerId !== drag.pointerId) return; const current = drag; drag = null; el('graph').classList.remove('panning');
+    if (!drag || event.pointerId !== drag.pointerId) return; const current = drag; drag = null; alignmentGuides = []; el('graph').classList.remove('panning');
     if (current.moved && current.node && !current.node.external && pendingPositions) { const next = M.copy(model); next.views[viewKey()] = { positions: pendingPositions }; viewPositions = pendingPositions; commit(next, ''); }
     else if (!current.moved && current.node) select(current.node.originalId || current.node.id);
     pendingPositions = null;
@@ -492,12 +499,16 @@
   el('perspective').onchange = event => changePerspective(event.target.value);
   el('example').insertAdjacentHTML('beforeend', '<option value="business">Business processes, stakeholders and layers</option>');
   globalThis.ModellerExamples.first = G.example(M,D);
+  for(const [key,name] of Object.entries(globalThis.ModellerPlatform.templateNames)){globalThis.ModellerExamples[key]=globalThis.ModellerPlatform.template(key);el('example').insertAdjacentHTML('beforeend',`<option value="${key}">${esc(name)}</option>`);}
   el('example').insertAdjacentHTML('beforeend','<option value="first">First model — customer request service</option>');
   el('language-button').parentElement.insertAdjacentHTML('beforeend','<button type="button" class="button" id="first-model-guide" data-action="guide-toggle" aria-expanded="false" aria-controls="model-guide">Build your first model</button><button type="button" class="button" data-action="glossary">Help & glossary</button><button type="button" class="button" data-action="review-model">Review model</button>');
   document.querySelector('.workspace-tools').insertAdjacentHTML('afterend','<aside id="model-guide" class="model-guide" aria-labelledby="guide-step-title" hidden></aside>');
+  globalThis.ModellerEditor = {get model(){return model;},get selected(){return selected;},get diagram(){return diagram;},get camera(){return camera;}, get viewKey(){return viewKey();},get host(){return HOST;},get activeView(){return activeNamedView;},snapshot,commit,dialog,closeDialog,point:graphPoint,download,filename,toast,locate,select,loadView,changePerspective,history,render,fitView,replace:replaceDialog,nodeForm,edgeForm,exportJSON,
+    setViewExtras(value){viewExtras=value;camera=null;viewPositions=null;render();},get extras(){return viewExtras;},setPositions(value){const next=M.copy(model);next.views[viewKey()]={positions:value};viewPositions=value;commit(next,'Layout updated');},
+    dispatch(action){ actions[action]?.(); }};
   render(); updateHeaderHeight(); refreshNetwork(); if (initialWarning) toast(initialWarning);
   if (HOST) {
-    HOST.onDocument(next => { model = M.validate(next); focus = null; selected = null; selectedGroup = null; expanded = new Set(); perspective = 'solution'; processId = null; selectedLayerIds = null; camera = null; viewPositions = null; pendingPositions = null; activeNamedView = null; relationshipTypeIds = null; undoStack = []; redoStack = []; saveFailure = ''; render(); });
+    HOST.onDocument(next => { viewExtras = {}; model = M.validate(next); focus = null; selected = null; selectedGroup = null; expanded = new Set(); perspective = 'solution'; processId = null; selectedLayerIds = null; camera = null; viewPositions = null; pendingPositions = null; activeNamedView = null; relationshipTypeIds = null; undoStack = []; redoStack = []; saveFailure = ''; render(); });
     HOST.onImport((text,name) => { try { replaceDialog(globalThis.ModellerFormats.parse(text,name.split('.').pop()),'Model imported into this document'); } catch(error) { toast('Import failed: '+error.message); } });
   }
   window.addEventListener('load', () => { updateHeaderHeight(); refreshNetwork(); fitView(); });

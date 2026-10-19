@@ -1,0 +1,29 @@
+name: Package VS Code extension
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+permissions:
+  contents: read
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    env:
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run build:offline
+      - name: Verify browser entry and packaged resources
+        run: python3 scripts/verify-vsix.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mightora-architecture-modeller-vsix
+          path: dist/downloads/*.vsix

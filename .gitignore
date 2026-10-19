@@ -8,3 +8,10 @@ vscode-extension/media/
 vscode-extension/LICENSE
 vscode-extension/THIRD-PARTY-NOTICES.md
 *.vsix
+.generated/
+playwright-report/
+test-results/
+artifacts/
+.vscode-test-web/
+.vscode-test/
+vscode-extension/test/

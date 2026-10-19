@@ -4,6 +4,7 @@
   const nodeEnv = typeof module !== 'undefined' && module.exports;
   const M = nodeEnv ? require('./core.js') : root.Modeller;
   const D = nodeEnv ? require('./dimensions.js') : root.ModellerDimensions;
+  const P = nodeEnv ? require('../.generated/platform.cjs') : root.ModellerPlatform;
   const layerNames = (model, n) => (n.layerIds || []).map(id => model.layers.find(l => l.id === id)?.name).filter(Boolean).join(', ');
   const Zip = nodeEnv ? require('../assets/jszip.min.js') : root.JSZip;
   const Pptx = nodeEnv ? require('node:vm').runInNewContext(require('node:fs').readFileSync(require('node:path').join(__dirname, '../assets/pptxgen.bundle.js'), 'utf8') + '\nPptxGenJS;', { JSZip: Zip, console, Buffer, Uint8Array, ArrayBuffer, Blob, TextEncoder, TextDecoder, setTimeout, clearTimeout, btoa, atob }) : root.PptxGenJS;
@@ -72,11 +73,37 @@
   function prepare(model, views) {
     M.validate(model); if (!views.length || views.length > 50) throw new Error('Choose between 1 and 50 views.');
     const scenes = views.map(v => scene(model, v));
-    if (scenes.some(s => s.nodes.length > 500)) throw new Error('For Office export, focus or collapse each view to 500 visible components or fewer.');
     return scenes;
   }
-  async function pptx(model, views) {
-    const scenes = prepare(model, views), deck = new Pptx(); deck.layout = 'LAYOUT_WIDE'; deck.author = 'Mightora Architecture Modeller'; deck.subject = 'Architecture views'; deck.title = model.name; deck.company = 'Mightora'; deck.lang = 'en-GB'; deck.theme = { headFontFace: 'Arial', bodyFontFace: 'Arial', lang: 'en-GB' };
+  function paginate(s) {
+    if (s.nodes.length <= 12 && s.width / s.height < 4 && s.height / s.width < 3) return [s];
+    if(s.bands.length){const result=[];for(const band of s.bands){const members=s.nodes.filter(n=>n.y>=band.y&&n.y<band.y+band.h);for(let start=0;start<members.length;start+=9){const chosen=members.slice(start,start+9),ids=new Set(chosen.map(n=>n.id)),height=Math.ceil(chosen.length/3)*200+120;result.push({...s,view:{...s.view,name:s.view.name+' — '+band.name+(start?' continued':'')},nodes:chosen.map((n,i)=>({...n,expanded:false,parentVisible:null,x:55+(i%3)*335,y:95+Math.floor(i/3)*200,w:285,h:140})),bands:[{...band,x:30,y:20,w:1030,h:height-30}],edges:s.edges.filter(e=>ids.has(e.source)&&ids.has(e.target)),exactEdges:s.edges.filter(e=>ids.has(e.source)||ids.has(e.target)).flatMap(e=>e.edges),minX:0,minY:0,width:1090,height});}}return result; }
+    // Every visible entity appears on a detail slide/page. Cross-page links are retained in notes and report tables.
+    const result=[];
+    for(let start=0;start<s.nodes.length;start+=9){const chosen=s.nodes.slice(start,start+9),ids=new Set(chosen.map(n=>n.id));const nodes=chosen.map((n,i)=>({...n,expanded:false,parentVisible:null,x:35+(i%3)*350,y:45+Math.floor(i/3)*200,w:285,h:140}));result.push({...s,view:{...s.view,name:(s.view.name||'Architecture')+' — detail '+(result.length+1)},nodes,bands:[],edges:s.edges.filter(e=>ids.has(e.source)&&ids.has(e.target)),exactEdges:s.edges.filter(e=>ids.has(e.source)||ids.has(e.target)).flatMap(e=>e.edges),minX:0,minY:0,width:1080,height:Math.max(280,Math.ceil(chosen.length/3)*200+70)});}
+    return result.length?result:[s];
+  }
+  function logoDrawing(aspect=4) {const width=Math.min(2,.5*aspect),height=width/aspect,cx=Math.round(width*914400),cy=Math.round(height*914400);return `<w:p><w:r><w:drawing><wp:inline><wp:extent cx="${cx}" cy="${cy}"/><wp:docPr id="99999" name="Document logo"/><a:graphic xmlns:a="${xmlns}drawingml/2006/main"><a:graphicData uri="${xmlns}drawingml/2006/picture"><pic:pic xmlns:pic="${xmlns}drawingml/2006/picture"><pic:nvPicPr><pic:cNvPr id="0" name="Logo"/><pic:cNvPicPr/></pic:nvPicPr><pic:blipFill><a:blip r:embed="rLogo"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill><pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${cx}" cy="${cy}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r></w:p>`;}
+  function addReportSlides(deck,sections,settings) {
+    // Fixed line budgets avoid relying on Office-specific autofit. All content stays in native text boxes.
+    const addTextPages=(title,paragraphs)=>{
+      const lines=paragraphs.flatMap(p=>String(p).split('\n').flatMap(line=>line ? wrap(line,92,100000) : ['']));
+      for(let start=0;start<Math.max(1,lines.length);start+=17){const slide=deck.addSlide(),page=Math.floor(start/17)+1,total=Math.ceil(lines.length/17)||1;
+        slide.addText(title+(total>1?' ('+page+'/'+total+')':''),{x:.55,y:.3,w:12.2,h:.75,fontSize:26,bold:true,color:(settings.primary||'#059669').slice(1),margin:0,fit:'shrink'});
+        slide.addText(lines.slice(start,start+17).join('\n'),{x:.65,y:1.35,w:12,h:5.45,fontSize:17,breakLine:false,valign:'top',margin:0,lineSpacingMultiple:1.08});
+        slide.addNotes(paragraphs);slide.addText(settings.confidentiality||'Architecture documentation',{x:.55,y:7.12,w:12,h:.18,fontSize:8,color:'64748B',margin:0});
+      }
+    };
+    for(const section of sections){
+      if(section.paragraphs?.length)addTextPages(section.title,section.paragraphs);
+      const headers=section.rows?.[0]||[];
+      for(const row of section.rows?.slice(1)||[])addTextPages(section.title,row.map((value,i)=>headers[i]+': '+String(value)));
+    }
+  }
+  async function pptx(model, views, settings = {}) {
+    const scenes = prepare(model, views).flatMap(s => paginate(s)), deck = new Pptx(); deck.layout = 'LAYOUT_WIDE'; deck.author = 'Mightora Architecture Modeller'; deck.subject = 'Architecture views'; deck.title = model.name; deck.company = 'Mightora'; deck.lang = 'en-GB'; deck.author = settings.author || 'Mightora Architecture Modeller'; deck.company = settings.organisation || ''; deck.title = settings.title || model.name; deck.theme = { headFontFace: settings.font || 'Arial', bodyFontFace: settings.font || 'Arial', lang: 'en-GB' };
+    const front = settings.pack ? 1 : 0;
+    if (settings.pack) { const title = deck.addSlide(); title.addText(settings.title || model.name, {x:.65,y:1.3,w:12,h:1.4,fontSize:36,bold:true,color:(settings.primary||'#059669').slice(1),fit:'shrink'});title.addText([settings.project,settings.organisation,settings.author,settings.version,settings.date,settings.confidentiality].filter(Boolean).join(' · '),{x:.65,y:3.1,w:12,h:.7,fontSize:16,fit:'shrink'});title.addText(model.description || 'Architecture design and documentation', {x:.65,y:4.2,w:12,h:1.2,fontSize:18,fit:'shrink'}); if(settings.logo){const aspect=settings.logoAspect||4,w=Math.min(2.4,.6*aspect);title.addImage({data:settings.logo,x:.7,y:.3,w,h:w/aspect});} }
     const connectorMaps = [];
     for (let i = 0; i < scenes.length; i++) {
       const s = scenes[i], slide = deck.addSlide(); slide.background = { color: 'FFFFFF' };
@@ -87,7 +114,7 @@
       const maps = [];
       for (const b of s.bands) {
         slide.addShape(deck.ShapeType.roundRect, { x:px(b.x), y:py(b.y), w:b.w*scale, h:b.h*scale, fill:{color:'F5FAF7'}, line:{color:b.color.slice(1),width:.8}, objectName:'layer-'+(b.id || 'unassigned') });
-        slide.addText(b.name, { x:px(b.x+20), y:py(b.y+10), w:(b.w-40)*scale, h:23*scale, fontSize:Math.max(5,16*scale*72), bold:true, color:b.color.slice(1), margin:0 });
+        slide.addText(b.name, { x:px(b.x+20), y:py(b.y+10), w:(b.w-40)*scale, h:23*scale, fontSize:Math.max(10,16*scale*72), bold:true, color:b.color.slice(1), margin:0 });
         slide.addText(b.description.slice(0,125), { x:px(b.x+20), y:py(b.y+35), w:(b.w-40)*scale, h:18*scale, fontSize:Math.max(4,10*scale*72), color:'57675E', margin:0, fit:'shrink' });
       }
       function box(n) { const t = model.types.find(t => t.id === n.typeId); slide.addShape(t.shape === 'square' ? deck.ShapeType.rect : deck.ShapeType.roundRect, { x: px(n.x), y: py(n.y), w: n.w * scale, h: n.h * scale, radius: .05, rectRadius: .05, fill: { color: n.expanded ? 'F0FDF4' : 'FFFFFF' }, line: { color: t.color.slice(1), width: .8, dashType: n.external || n.expanded ? 'dash' : 'solid' }, objectName: `node-${n.id}` }); }
@@ -112,15 +139,16 @@
         slide.addText(p.label, { x: px(p.cx) - w / 2, y: py(p.cy) - 10 * scale, w, h: 20 * scale, fontSize: Math.max(4, 10 * scale * 72), align: 'center', color: '475569', fill: { color: 'FFFFFF' }, margin: 0, fit: 'shrink' });
       }
       slide.addText(`${i + 1} / ${scenes.length} · ${model.name} · Mightora`, { x: .45, y: 7.12, w: 12.4, h: .17, fontSize: 8, color: '64748B', margin: 0 });
-      const exact = s.edges.flatMap(e => e.edges).map(e => `${M.path(model, e.source)} — ${model.relationshipTypes.find(t => t.id === e.typeId).name}${e.role ? ' · ' + D.roleLabel(e) : ''}${e.label ? ' (' + e.label + ')' : ''} → ${M.path(model, e.target)}`);
+      const exact = (s.exactEdges || s.edges.flatMap(e => e.edges)).map(e => `[${e.id}] ${M.path(model, e.source)} — ${model.relationshipTypes.find(t => t.id === e.typeId).name}${e.role ? ' · ' + D.roleLabel(e) : ''}${e.label ? ' (' + e.label + ')' : ''} → ${M.path(model, e.target)}`);
       slide.addNotes(['Perspective: '+(s.view.perspective || 'solution'), ...s.nodes.map(n => `${n.name} [${D.kind(n)}]${layerNames(model,n) ? ' — Layers: '+layerNames(model,n) : ''}`), ...(model.layers || []).map(l => `${l.name}: ${l.description}`)]);
       slide.addNotes([model.description || '',s.view.description || '', 'Exact relationships in this view:', ...exact, ...attribution(model,s.nodes)]);
       connectorMaps.push(maps);
     }
     // Convert line shapes into attached native DrawingML connectors. Source IDs are generated by PptxGenJS.
+    if (settings.pack) addReportSlides(deck, P.reportSections(model, views, settings), settings);
     const data = await deck.write({ outputType: 'uint8array' }), zip = await Zip.loadAsync(data);
     for (let i = 0; i < scenes.length; i++) {
-      const path = `ppt/slides/slide${i + 1}.xml`; let xml = await zip.file(path).async('string');
+      const path = `ppt/slides/slide${i + 1 + front}.xml`; let xml = await zip.file(path).async('string');
       const ids = new Map([...xml.matchAll(/<p:cNvPr\b[^>]*\bid="(\d+)"[^>]*\bname="([^"]+)"/g)].map(m => [m[2], m[1]]));
       for (const map of connectorMaps[i]) xml = xml.replace(/<p:sp>.*?<\/p:sp>/gs, shape => {
         if (!shape.includes(`name="${x(map.name)}"`)) return shape;
@@ -139,41 +167,52 @@
       const context = canvas.getContext('2d'); if (!context) throw new Error('Canvas is unavailable.'); context.drawImage(image, 0, 0, canvas.width, canvas.height); return canvas.toDataURL('image/png').split(',')[1];
     } finally { URL.revokeObjectURL(url); }
   }
-  function paragraph(text, style = 'Normal', before = false) { return `<w:p><w:pPr><w:pStyle w:val="${style}"/>${before ? '<w:pageBreakBefore/>' : ''}</w:pPr><w:r><w:t xml:space="preserve">${x(text)}</w:t></w:r></w:p>`; }
+  function paragraph(text, style = 'Normal', before = false) { return `<w:p><w:pPr><w:pStyle w:val="${style}"/>${before ? '<w:pageBreakBefore/>' : ''}</w:pPr><w:r><w:t xml:space="preserve">${String(text).split('\n').map(line=>x(line)).join('</w:t><w:br/><w:t xml:space="preserve">')}</w:t></w:r></w:p>`; }
   function table(rows, widths) {
-    return `<w:tbl><w:tblPr><w:tblW w:w="0" w:type="auto"/><w:tblLayout w:type="fixed"/><w:tblCellMar><w:top w:w="90" w:type="dxa"/><w:left w:w="100" w:type="dxa"/><w:bottom w:w="90" w:type="dxa"/><w:right w:w="100" w:type="dxa"/></w:tblCellMar><w:tblBorders>${['top', 'left', 'bottom', 'right', 'insideH', 'insideV'].map(k => `<w:${k} w:val="single" w:sz="4" w:color="D9D9D9"/>`).join('')}</w:tblBorders></w:tblPr><w:tblGrid>${widths.map(w => `<w:gridCol w:w="${w}"/>`).join('')}</w:tblGrid>${rows.map((row, i) => `<w:tr><w:trPr><w:cantSplit/>${i === 0 ? '<w:tblHeader/>' : ''}</w:trPr>${row.map((value, j) => `<w:tc><w:tcPr><w:tcW w:w="${widths[j]}" w:type="dxa"/><w:vAlign w:val="center"/>${i === 0 ? '<w:shd w:fill="E2E8F0"/>' : ''}</w:tcPr>${paragraph(value, i === 0 ? 'TableHeader' : 'TableText')}</w:tc>`).join('')}</w:tr>`).join('')}</w:tbl>`;
+    return `<w:tbl><w:tblPr><w:tblW w:w="0" w:type="auto"/><w:tblLayout w:type="fixed"/><w:tblCellMar><w:top w:w="90" w:type="dxa"/><w:left w:w="100" w:type="dxa"/><w:bottom w:w="90" w:type="dxa"/><w:right w:w="100" w:type="dxa"/></w:tblCellMar><w:tblBorders>${['top', 'left', 'bottom', 'right', 'insideH', 'insideV'].map(k => `<w:${k} w:val="single" w:sz="4" w:color="D9D9D9"/>`).join('')}</w:tblBorders></w:tblPr><w:tblGrid>${widths.map(w => `<w:gridCol w:w="${w}"/>`).join('')}</w:tblGrid>${rows.map((row, i) => `<w:tr><w:trPr>${i === 0 ? '<w:tblHeader/><w:cantSplit/>' : ''}</w:trPr>${row.map((value, j) => `<w:tc><w:tcPr><w:tcW w:w="${widths[j]}" w:type="dxa"/><w:vAlign w:val="center"/>${i === 0 ? '<w:shd w:fill="E2E8F0"/>' : ''}</w:tcPr>${paragraph(value, i === 0 ? 'TableHeader' : 'TableText')}</w:tc>`).join('')}</w:tr>`).join('')}</w:tbl>`;
   }
   async function docx(model, views, settings = {}) {
-    const scenes = prepare(model, views), zip = new Zip(), rels = [{ id: 'rStyles', type: 'styles', target: 'styles.xml' }], body = [];
-    const landscape = settings.landscape === true, pageWidth = landscape ? 15840 : 12240, pageHeight = landscape ? 12240 : 15840, usable = pageWidth - 1800;
-    body.push(paragraph(model.name, 'Title'), paragraph(`Architecture views · ${views.length} selected · Generated with Mightora Architecture Modeller`));
+    const scenes = prepare(model, views).flatMap(s => paginate(s)), zip = new Zip(), rels = [{ id: 'rStyles', type: 'styles', target: 'styles.xml' }], body = [];
+    const landscape = settings.landscape === true, pageWidth = landscape ? 16838 : 11906, pageHeight = landscape ? 11906 : 16838, usable = pageWidth - 1800;
+    body.push(paragraph(settings.title || model.name, 'Title'), paragraph(`Architecture views · ${views.length} selected · Generated with Mightora Architecture Modeller`));
+    if(settings.pack) {body.push(table([['Document information','Value'],...Object.entries({Author:settings.author||'',Organisation:settings.organisation||'',Project:settings.project||model.name,Version:settings.version||'',Date:settings.date||new Date().toISOString().slice(0,10),Classification:settings.confidentiality||''})],[Math.round(usable*.3),Math.round(usable*.7)]));
+    body.push(paragraph('Contents','Heading1'),`<w:p><w:fldSimple w:instr='TOC \\o &quot;1-3&quot; \\h \\z \\u'><w:r><w:t>Update this table of contents in Word to display page numbers.</w:t></w:r></w:fldSimple></w:p>`);}
+    if(settings.logo){const match=/^data:image\/(png|jpeg);base64,([A-Za-z0-9+/=]+)$/.exec(settings.logo);if(match){zip.file('word/media/logo.'+match[1],match[2],{base64:true});rels.push({id:'rLogo',type:'image',target:'media/logo.'+match[1]});body.push(logoDrawing(settings.logoAspect||4));}}
     if(model.description) body.push(paragraph(model.description));
+    const prefaceTitles=['Executive summary','Solution overview','Scope and objectives','Architecture principles'],sections=settings.pack?P.reportSections(model,views,settings):[];
+    for(const section of sections.filter(s=>prefaceTitles.includes(s.title))){body.push(paragraph(section.title,'Heading1'));for(const text of section.paragraphs||[])body.push(paragraph(text));}
     for (let i = 0; i < scenes.length; i++) {
       const s = scenes[i], source = svg(s), png = await (settings.rasterize || rasterize)(source);
       zip.file(`word/media/view${i + 1}.svg`, source); zip.file(`word/media/view${i + 1}.png`, png, { base64: true });
       rels.push({ id: `rPng${i}`, type: 'image', target: `media/view${i + 1}.png` }, { id: `rSvg${i}`, type: 'image', target: `media/view${i + 1}.svg` });
-      body.push(paragraph(s.view.name, 'Heading1', i > 0)); if (s.view.description) body.push(paragraph(s.view.description));
-      const w = Math.min(usable, (landscape ? 5100 : 7000) * s.width / s.height), h = w * s.height / s.width, cx = Math.round(w * 635), cy = Math.round(h * 635);
+      body.push(paragraph(s.view.name, 'Heading1', settings.pack || i > 0)); if (s.view.description) body.push(paragraph(s.view.description));
+      const w = Math.min(usable, (landscape ? 5100 : 7000) * s.width / s.height) * (settings.diagramScale || 1), h = w * s.height / s.width, cx = Math.round(w * 635), cy = Math.round(h * 635);
       body.push(`<w:p><w:pPr><w:jc w:val="center"/></w:pPr><w:r><w:drawing><wp:inline distT="0" distB="0" distL="0" distR="0"><wp:extent cx="${cx}" cy="${cy}"/><wp:docPr id="${i + 1}" name="${x(s.view.name)}" descr="Architecture diagram for ${x(s.view.name)}"/><a:graphic xmlns:a="${xmlns}drawingml/2006/main"><a:graphicData uri="${xmlns}drawingml/2006/picture"><pic:pic xmlns:pic="${xmlns}drawingml/2006/picture"><pic:nvPicPr><pic:cNvPr id="0" name="${x(s.view.name)}"/><pic:cNvPicPr/></pic:nvPicPr><pic:blipFill><a:blip r:embed="rPng${i}"><a:extLst><a:ext uri="{96DAC541-7B7A-43D3-8B79-37D633B846F1}"><asvg:svgBlip xmlns:asvg="http://schemas.microsoft.com/office/drawing/2016/SVG/main" r:embed="rSvg${i}"/></a:ext></a:extLst></a:blip><a:stretch><a:fillRect/></a:stretch></pic:blipFill><pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${cx}" cy="${cy}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r></w:p>`);
       body.push(paragraph(`${s.nodes.length} visible entities · ${s.edges.length} visible relationship groups. Perspective: ${s.view.perspective || 'solution'}. External representatives and grouped links retain exact endpoints in the relationship table.`, 'Caption'));
       if (settings.tables !== false) {
         body.push(paragraph('Entities and application layers', 'Heading2'));
         body.push(table([['Entity', 'Category / type', 'Description, layers and properties'], ...s.nodes.map(n => { const original = model.nodes.find(v => v.id === (n.originalId || n.id)); return [M.path(model, original.id) + (n.external ? ' (external context)' : ''), D.kind(original)+' / '+model.types.find(t => t.id === n.typeId).name, [original.description, layerNames(model,original) ? 'Layers (primary first): '+layerNames(model,original) : '', ...Object.entries(original.properties || {}).map(([key, value]) => `${key}: ${value}`)].filter(Boolean).join('\n')]; })], [Math.round(usable * .33), Math.round(usable * .18), usable - Math.round(usable * .33) - Math.round(usable * .18)]));
         if (s.view.perspective === 'layers' && model.layers?.length) body.push(table([['Layer', 'Definition'], ...model.layers.map(l => [l.name,l.description])], [Math.round(usable*.3),usable-Math.round(usable*.3)]));
-        const exact = s.edges.flatMap(e => e.edges);
+        const exact = s.exactEdges || s.edges.flatMap(e => e.edges);
         if (exact.length) { body.push(paragraph('Relationships', 'Heading2')); body.push(table([['Source', 'Relationship / responsibility', 'Target'], ...exact.map(e => [M.path(model, e.source), `${model.relationshipTypes.find(t => t.id === e.typeId).name}${e.role ? '\n'+D.roleLabel(e) : ''}${e.label ? ': ' + e.label : ''}${e.description ? '\n' + e.description : ''}`, M.path(model, e.target)])], [Math.round(usable * .36), Math.round(usable * .28), usable - Math.round(usable * .36) - Math.round(usable * .28)])); }
       }
     }
+    if(settings.pack) for(const section of sections.filter(s=>!prefaceTitles.includes(s.title))){body.push(paragraph(section.title,'Heading1'));for(const text of section.paragraphs||[])body.push(paragraph(text));if(section.rows?.length>1)body.push(table(section.rows,section.rows[0].length===3?[Math.round(usable*.26),Math.round(usable*.24),usable-Math.round(usable*.26)-Math.round(usable*.24)]:[Math.round(usable*.3),usable-Math.round(usable*.3)]));}
     for(const credit of attribution(model,scenes.flatMap(s=>s.nodes))) body.push(paragraph(credit,'Caption'));
-    body.push(`<w:sectPr><w:pgSz w:w="${pageWidth}" w:h="${pageHeight}"${landscape ? ' w:orient="landscape"' : ''}/><w:pgMar w:top="900" w:right="900" w:bottom="900" w:left="900" w:header="0" w:footer="0" w:gutter="0"/></w:sectPr>`);
+    rels.push({id:'rHeader',type:'header',target:'header1.xml'},{id:'rFooter',type:'footer',target:'footer1.xml'},{id:'rSettings',type:'settings',target:'settings.xml'});
+    zip.file('word/header1.xml',`<?xml version="1.0"?><w:hdr xmlns:w="${xmlns}wordprocessingml/2006/main">${paragraph(settings.title||model.name,'Caption')}</w:hdr>`);
+    zip.file('word/footer1.xml',`<?xml version="1.0"?><w:ftr xmlns:w="${xmlns}wordprocessingml/2006/main"><w:p><w:pPr><w:jc w:val="right"/></w:pPr><w:r><w:t>${x(settings.confidentiality||'Architecture documentation')} · </w:t></w:r><w:fldSimple w:instr="PAGE"><w:r><w:t>1</w:t></w:r></w:fldSimple></w:p></w:ftr>`);
+    zip.file('word/settings.xml',`<?xml version="1.0"?><w:settings xmlns:w="${xmlns}wordprocessingml/2006/main"><w:updateFields w:val="true"/></w:settings>`);
+    body.push(`<w:sectPr><w:headerReference w:type="default" r:id="rHeader"/><w:footerReference w:type="default" r:id="rFooter"/><w:pgSz w:w="${pageWidth}" w:h="${pageHeight}"${landscape ? ' w:orient="landscape"' : ''}/><w:pgMar w:top="900" w:right="900" w:bottom="900" w:left="900" w:header="360" w:footer="360" w:gutter="0"/></w:sectPr>`);
     zip.file('word/document.xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="${xmlns}wordprocessingml/2006/main" xmlns:r="${xmlns}officeDocument/2006/relationships" xmlns:wp="${xmlns}drawingml/2006/wordprocessingDrawing"><w:body>${body.join('')}</w:body></w:document>`);
     zip.file('word/_rels/document.xml.rels', `<?xml version="1.0"?><Relationships xmlns="${xmlns}package/2006/relationships">${rels.map(r => `<Relationship Id="${r.id}" Type="${xmlns}officeDocument/2006/relationships/${r.type}" Target="${r.target}"/>`).join('')}</Relationships>`);
-    zip.file('_rels/.rels', `<?xml version="1.0"?><Relationships xmlns="${xmlns}package/2006/relationships"><Relationship Id="rDocument" Type="${xmlns}officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>`);
-    const styles = [['Normal', 22, false], ['Title', 34, true], ['Heading1', 28, true], ['Heading2', 24, true], ['Caption', 18, false], ['TableText', 20, false], ['TableHeader', 20, true]].map(([name, size, bold]) => `<w:style w:type="paragraph" w:styleId="${name}"><w:name w:val="${name}"/><w:pPr><w:spacing w:before="${name.startsWith('Heading') ? 200 : 0}" w:after="${name.startsWith('Table') ? 0 : 130}" w:line="280" w:lineRule="auto"/>${name.startsWith('Heading') || name === 'Title' ? '<w:keepNext/>' : ''}</w:pPr><w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial"/><w:sz w:val="${size}"/><w:color w:val="${name === 'Caption' ? '475569' : '000000'}"/>${bold ? '<w:b/>' : ''}</w:rPr></w:style>`).join('');
+    zip.file('_rels/.rels', `<?xml version="1.0"?><Relationships xmlns="${xmlns}package/2006/relationships"><Relationship Id="rDocument" Type="${xmlns}officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/><Relationship Id="rCore" Type="${xmlns}package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/></Relationships>`);
+    zip.file('docProps/core.xml',`<?xml version="1.0"?><cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/"><dc:title>${x(settings.title||model.name)}</dc:title><dc:creator>${x(settings.author||'Mightora Architecture Modeller')}</dc:creator><dc:subject>${x(settings.project||model.name)}</dc:subject><cp:version>${x(settings.version||'')}</cp:version><dc:description>${x(model.description||'')}</dc:description></cp:coreProperties>`);
+    const styles = [['Normal', 22, false], ['Title', 48, true], ['Heading1', 28, true], ['Heading2', 24, true], ['Caption', 18, false], ['TableText', 20, false], ['TableHeader', 20, true]].map(([name, size, bold]) => `<w:style w:type="paragraph" w:styleId="${name}"><w:name w:val="${name}"/><w:pPr><w:spacing w:before="${name.startsWith('Heading') ? 200 : 0}" w:after="${name.startsWith('Table') ? 0 : 130}" w:line="280" w:lineRule="auto"/>${name.startsWith('Heading') || name === 'Title' ? '<w:keepNext/>' : ''}${name==='Heading1'?'<w:outlineLvl w:val="0"/>':name==='Heading2'?'<w:outlineLvl w:val="1"/>':''}</w:pPr><w:rPr><w:rFonts w:ascii="${x(settings.font||'Arial')}" w:hAnsi="${x(settings.font||'Arial')}"/><w:sz w:val="${size}"/><w:color w:val="${name === 'Caption' ? '475569' : name.startsWith('Heading') && /^#[0-9a-f]{6}$/i.test((name==='Heading2'?settings.accent:settings.primary)||'') ? (name==='Heading2'?settings.accent:settings.primary).slice(1) : '000000'}"/>${bold ? '<w:b/>' : ''}</w:rPr></w:style>`).join('');
     zip.file('word/styles.xml', `<?xml version="1.0"?><w:styles xmlns:w="${xmlns}wordprocessingml/2006/main">${styles}</w:styles>`);
-    zip.file('[Content_Types].xml', `<?xml version="1.0"?><Types xmlns="${xmlns}package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Default Extension="svg" ContentType="image/svg+xml"/><Default Extension="png" ContentType="image/png"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/></Types>`);
+    zip.file('[Content_Types].xml', `<?xml version="1.0"?><Types xmlns="${xmlns}package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Default Extension="svg" ContentType="image/svg+xml"/><Default Extension="png" ContentType="image/png"/><Default Extension="jpeg" ContentType="image/jpeg"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/><Override PartName="/word/header1.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.header+xml"/><Override PartName="/word/footer1.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml"/><Override PartName="/word/settings.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml"/><Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/></Types>`);
     return zip.generateAsync({ type: 'uint8array', compression: 'DEFLATE' });
   }
-  const api = { scene, geometry, labelGeometry, svg, pptx, docx, iconFor, attribution };
+  const api = { scene, geometry, labelGeometry, svg, pptx, docx, paginate, iconFor, attribution };
   if (nodeEnv) module.exports = api; else root.ModellerOffice = api;
 })(globalThis);

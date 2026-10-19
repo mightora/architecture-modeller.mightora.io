@@ -14,6 +14,7 @@ async function host() {
   const uri={path:'/workspace/test.architecture.json',toString:()=> 'virtual:/workspace/test.architecture.json'};
   const doc={uri,version:1,lineCount:10,getText:()=>doc.text,text:JSON.stringify(M.empty('Original'))};
   const vscode={
+    EventEmitter:class {event=()=>({dispose(){}});fire(){}dispose(){}},
     Uri:{joinPath:(base,...parts)=>({path:[base.path,...parts].join('/'),toString(){return this.path;}})},
     Range:class {constructor(...args){this.args=args;}},
     WorkspaceEdit:class {replace(uri,range,text){this.text=text;}},
@@ -70,4 +71,9 @@ test('bridge YAML serialization and conflict handling preserve unsaved canvas re
   const b=bridge();b.event({type:'document',version:1,format:'yaml',text:F.dump(M.empty('Initial'))});b.api.save(M.empty('Updated'));
   assert.equal(F.parse(b.sent.at(-1).text,'yaml').name,'Updated');
   b.event({type:'document',version:2,format:'yaml',text:F.dump(M.empty('External'))});assert.equal(b.loaded.length,1);assert.equal(b.api.canEdit(),false);assert.match(b.status.textContent,/Export JSON/);
+});
+test('nonce injection preserves script-looking text inside bundled JavaScript strings',()=>{
+  const vscode={};const context=vm.createContext({require:name=>{assert.equal(name,'vscode');return vscode;},module:{exports:{}},TextEncoder,TextDecoder,Uint8Array,crypto,console});vm.runInContext(fs.readFileSync(path.join(root,'vscode-extension/extension.js'),'utf8'),context);
+  const markup='<meta http-equiv="Content-Security-Policy" content="old"><script>const text="<script>literal";</script><script>globalThis.ok=true;</script>';
+  const result=context.module.exports.webviewHTML(markup);assert.ok(result.includes('const text="<script>literal";'));assert.equal((result.match(/<script nonce=/g)||[]).length,2);
 });

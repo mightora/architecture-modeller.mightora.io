@@ -1,0 +1,54 @@
+name: Reusable architecture governance
+on:
+  workflow_call:
+    inputs:
+      model:
+        description: Model path to validate
+        required: true
+        type: string
+      enforce:
+        description: Fail the job on architecture errors
+        default: false
+        type: boolean
+        required: false
+  workflow_dispatch:
+    inputs:
+      model:
+        description: Model path to validate
+        required: true
+        default: docs/examples/simple.archmodel.json
+        type: string
+      enforce:
+        description: Fail the job on architecture errors
+        default: false
+        type: boolean
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+      - run: npm run compile
+      - name: Validate schema and governance
+        id: validate
+        continue-on-error: ${{ !inputs.enforce }}
+        env:
+          MODEL_PATH: ${{ inputs.model }}
+        run: node tools/cli/architecture.cjs validate "$MODEL_PATH" --json > architecture-report.json
+      - name: Human-readable summary
+        if: always()
+        env:
+          MODEL_PATH: ${{ inputs.model }}
+        run: node tools/cli/architecture.cjs validate "$MODEL_PATH" >> "$GITHUB_STEP_SUMMARY" || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: architecture-governance
+          path: architecture-report.json

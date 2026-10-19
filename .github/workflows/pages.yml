@@ -11,27 +11,70 @@ concurrency:
   cancel-in-progress: true
 jobs:
   build:
+    permissions:
+      contents: read
+      pages: read
     runs-on: ubuntu-latest
+    env:
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+          cache: npm
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm audit --audit-level=high
       - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - run: npm run test:vscode-web
+      - name: Write verified build details
+        run: node scripts/record-verification.mjs
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: website-offline-and-vscode-extension
-          path: dist
+          path: |
+            dist
+            artifacts/vscode-web-results.json
+            artifacts/vscode-web-verified.png
+            playwright-report
+      - uses: actions/configure-pages@v5
+        if: github.event_name != 'pull_request'
       - uses: actions/upload-pages-artifact@v3
-        if: vars.ENABLE_GITHUB_PAGES == 'true' && github.event_name != 'pull_request'
+        if: github.event_name != 'pull_request'
         with:
           path: dist
+  desktop-extension:
+    runs-on: ubuntu-latest
+    env:
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: npm ci
+      - run: npm run build:offline
+      - run: xvfb-run -a npm run test:vscode-desktop
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: desktop-extension-verification
+          path: artifacts/vscode-desktop-results.json
   deploy:
-    if: vars.ENABLE_GITHUB_PAGES == 'true' && github.event_name != 'pull_request'
-    needs: build
+    if: github.event_name != 'pull_request'
+    needs: [build, desktop-extension]
     runs-on: ubuntu-latest
     permissions:
       pages: write

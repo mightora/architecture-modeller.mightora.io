@@ -5,7 +5,7 @@ const examples = require('../src/examples.js');
 const fresh = () => M.validate(examples.platform);
 
 test('both complete examples validate without mutating the input', () => {
-  for (const original of Object.values(examples)) { const before = JSON.stringify(original); assert.equal(M.validate(original).schemaVersion, 1); assert.equal(JSON.stringify(original), before); }
+  for (const original of Object.values(examples)) { const before = JSON.stringify(original); assert.equal(M.validate(original).schemaVersion, M.VERSION); assert.equal(JSON.stringify(original), before); }
 });
 test('overview rolls deep endpoints up to visible roots and retains exact edges', () => {
   const m = fresh(), p = M.project(m), g = p.edges.find(g => g.source === 'pp' && g.target === 'azure' && g.typeId === 'calls');

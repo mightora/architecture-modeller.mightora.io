@@ -1,0 +1,2 @@
+const {defineConfig}=require('@playwright/test');
+module.exports=defineConfig({testDir:'tests/e2e',timeout:60000,fullyParallel:false,workers:1,reporter:[['list'],['html',{open:'never'}]],use:{headless:true,viewport:{width:1500,height:1000},acceptDownloads:true,launchOptions:{executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH||undefined,args:['--no-sandbox','--disable-dev-shm-usage','--disable-gpu']}},outputDir:'test-results'});

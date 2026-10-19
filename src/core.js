@@ -1,7 +1,8 @@
 /* Mightora Architecture Modeller — dependency-free graph model. MIT licence. */
 (function (root) {
   'use strict';
-  const VERSION = 1;
+  const VERSION = 2;
+  const P = typeof module !== 'undefined' && module.exports ? require('../.generated/platform.cjs') : root.ModellerPlatform;
   const ICON_CATALOG = typeof module !== 'undefined' && module.exports ? require('../assets/icon-catalog.json') : root.ModellerIconCatalog;
   const ICON_IDS = ICON_CATALOG.map(icon => icon.id);
   const LIMITS = Object.freeze({ nodes: 3000, edges: 10000, types: 50, depth: 64, bytes: 5 * 1024 * 1024 });
@@ -31,8 +32,7 @@
   }
   function validate(input) {
     assert(input && typeof input === 'object' && !Array.isArray(input), 'This file is not an architecture model.');
-    assert(input.schemaVersion === VERSION, `Unsupported model version. Expected schemaVersion ${VERSION}.`);
-    const m = copy(input);
+    const m = P.migrate(input);
     text(m.name, 160, 'Model name', true);
     if (m.description !== undefined) text(m.description, 4000, 'Model question and scope');
     assert(Array.isArray(m.types) && m.types.length > 0 && m.types.length <= LIMITS.types, 'Include 1–50 component types.');
@@ -86,7 +86,7 @@
       if (!validId(key) || !value || typeof value !== 'object') continue;
       const positions = {};
       for (const [nid, p] of Object.entries(value.positions || {}).slice(0, LIMITS.nodes)) {
-        if (nodes.has(nid) && Number.isFinite(p?.x) && Number.isFinite(p?.y) && Math.abs(p.x) <= 100000 && Math.abs(p.y) <= 100000) positions[nid] = { x: p.x, y: p.y };
+        if (nodes.has(nid) && Number.isFinite(p?.x) && Number.isFinite(p?.y) && Math.abs(p.x) <= 100000 && Math.abs(p.y) <= 100000) positions[nid] = { x: p.x, y: p.y, ...(Number.isFinite(p.w) && p.w >= 180 && p.w <= 1200 ? {w:p.w} : {}), ...(Number.isFinite(p.h) && p.h >= 124 && p.h <= 1000 ? {h:p.h} : {}) };
       }
       safeViews[key] = { positions };
     }
@@ -102,13 +102,14 @@
         assert(view.relationshipTypeIds == null || (Array.isArray(view.relationshipTypeIds) && view.relationshipTypeIds.length <= LIMITS.types && view.relationshipTypeIds.every(id => relationTypes.has(id))), 'Saved view references an unknown relationship type.');
         assert(typeof view.showExternal === 'boolean', 'Saved view external context must be true or false.');
         const positions = {};
-        for (const [nid, p] of Object.entries(view.positions || {}).slice(0, LIMITS.nodes)) if (nodes.has(nid) && Number.isFinite(p?.x) && Number.isFinite(p?.y) && Math.abs(p.x) <= 100000 && Math.abs(p.y) <= 100000) positions[nid] = { x: p.x, y: p.y };
+        for (const [nid, p] of Object.entries(view.positions || {}).slice(0, LIMITS.nodes)) if (nodes.has(nid) && Number.isFinite(p?.x) && Number.isFinite(p?.y) && Math.abs(p.x) <= 100000 && Math.abs(p.y) <= 100000) positions[nid] = { x: p.x, y: p.y, ...(Number.isFinite(p.w) && p.w >= 180 && p.w <= 1200 ? {w:p.w} : {}), ...(Number.isFinite(p.h) && p.h >= 124 && p.h <= 1000 ? {h:p.h} : {}) };
         view.positions = positions;
         if (view.camera !== undefined) assert(view.camera && ['x', 'y', 'w', 'h'].every(k => Number.isFinite(view.camera[k]) && Math.abs(view.camera[k]) <= 1000000) && view.camera.w > 0 && view.camera.h > 0, 'Invalid saved view camera.');
       }
     }
     const dimensions = typeof module !== 'undefined' && module.exports ? require('./dimensions.js') : root.ModellerDimensions;
     dimensions.validate(m);
+    P.validateExtensions(m);
     return m;
   }
   function parse(json) { assert(typeof json === 'string' && new TextEncoder().encode(json).length <= LIMITS.bytes, 'Import a model smaller than 5 MB.'); return validate(JSON.parse(json)); }
@@ -119,7 +120,8 @@
   function removeNode(model, nodeId) {
     const next = copy(model); const removed = descendants(next, nodeId, true);
     next.nodes = next.nodes.filter(n => !removed.has(n.id)); next.edges = next.edges.filter(e => !removed.has(e.source) && !removed.has(e.target)); next.views = {};
-    for (const v of next.namedViews || []) { if (removed.has(v.focus)) v.focus = null; if (removed.has(v.processId)) v.processId = null; v.expanded = v.expanded.filter(id => !removed.has(id)); v.positions = {}; delete v.camera; }
+    for (const v of next.namedViews || []) { if (removed.has(v.focus)) v.focus = null; if (removed.has(v.processId)) v.processId = null; v.expanded = v.expanded.filter(id => !removed.has(id)); v.positions = {}; delete v.camera; for (const key of ['includedIds','hiddenIds']) if (v[key]) v[key] = v[key].filter(id => !removed.has(id)); if (v.routes) for (const id of Object.keys(v.routes)) if (!next.edges.some(e=>e.id===id)) delete v.routes[id]; }
+    for (const d of next.decisions || []) d.componentIds = d.componentIds.filter(id=>!removed.has(id));
     return validate(next);
   }
   function impact(model, nodeId, direction = 'incoming') {
@@ -166,7 +168,7 @@
     for (const n of byId.values()) { const p = n.external ? 'external' : n.parentVisible; if (!children.has(p)) children.set(p, []); children.get(p).push(n); }
     const measure = n => {
       const kids = children.get(n.id) || [];
-      if (!n.expanded || !kids.length) { n.w = 252; n.h = 124; return; }
+      if (!n.expanded || !kids.length) { n.w = saved[n.id]?.w || 252; n.h = saved[n.id]?.h || 124; return; }
       kids.forEach(measure); const cols = Math.min(2, kids.length); const cellW = Math.max(...kids.map(c => c.w)); let y = 76;
       for (let r = 0; r < Math.ceil(kids.length / cols); r++) { const row = kids.slice(r * cols, (r + 1) * cols); for (let c = 0; c < row.length; c++) { row[c].rx = 26 + c * (cellW + 70); row[c].ry = y; } y += Math.max(...row.map(c => c.h)) + 62; }
       n.w = cols * cellW + (cols - 1) * 70 + 52; n.h = y - 30;
@@ -178,7 +180,7 @@
     roots.forEach(n => place(n));
     const right = Math.max(312, ...roots.map(n => n.x + n.w));
     const external = children.get('external') || [];
-    external.forEach((n, i) => { n.x = right + 170; n.y = 80 + i * 200; n.w = 252; n.h = 124; });
+    external.forEach((n, i) => { n.x = right + 170; n.y = 80 + i * 200; n.w = saved[n.id]?.w || 252; n.h = saved[n.id]?.h || 124; });
     return { nodes: [...byId.values()], width: Math.max(720, ...[...byId.values()].map(n => n.x + n.w + 80)), height: Math.max(470, ...[...byId.values()].map(n => n.y + n.h + 80)) };
   }
   function empty(name = 'Untitled architecture') {

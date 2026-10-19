@@ -1,9 +1,32 @@
 {
   "name": "mightora-architecture-modeller",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "private": true,
   "license": "MIT",
   "description": "Local-first hierarchical architecture modelling with a configurable modelling language.",
-  "scripts": { "test": "node --test tests/*.test.cjs", "build": "python3 scripts/update-shared-ui.py && python3 scripts/build.py && python3 scripts/build-extension.py", "build:offline": "python3 scripts/build.py && python3 scripts/build-extension.py" },
-  "engines": { "node": ">=20" }
+  "scripts": {
+    "test": "npm run compile && node --test tests/*.test.cjs",
+    "build": "npm run compile && python3 scripts/update-shared-ui.py && python3 scripts/build.py && python3 scripts/build-extension.py",
+    "build:offline": "npm run compile && python3 scripts/build.py && python3 scripts/build-extension.py",
+    "compile": "node scripts/compile.mjs",
+    "typecheck": "tsc -p tsconfig.json",
+    "lint": "node scripts/lint.mjs",
+    "test:e2e": "playwright test",
+    "validate:model": "node tools/cli/architecture.cjs",
+    "test:vscode-web": "node scripts/test-vscode-web.mjs",
+    "test:vscode-desktop": "node scripts/test-vscode-desktop.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.1",
+    "@types/node": "^26.6.5",
+    "@types/vscode": "^1.140.0",
+    "@vscode/test-electron": "^3.1.0",
+    "@vscode/test-web": "^0.0.81",
+    "@vscode/vsce": "^4.0.0",
+    "esbuild": "^0.28.2",
+    "typescript": "^7.0.2"
+  }
 }

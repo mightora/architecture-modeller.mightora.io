@@ -1,0 +1,10 @@
+const fs=require('node:fs'),path=require('node:path');
+const P=require('../.generated/platform.cjs'),M=require('../src/core.js');
+const O=require('../src/office.js');
+const sharp=require(path.join(process.env.CODEX_PRIMARY_RUNTIME_NODE_MODULES,'sharp'));
+const m=M.validate(P.template('web'));
+m.name='Customer Service Architecture';m.nodes[0].sourceLinks=[{kind:'repository',label:'Implementation repository',target:'https://github.com/mightora/architecture-modeller.mightora.io'}];
+m.decisions=[{id:'ADR-0001',title:'Generate architecture documents locally',status:'accepted',date:'2026-10-19',context:'Architecture models may contain sensitive service information.',decision:'Generate Word and PowerPoint files in the browser.',alternatives:'A hosted document conversion service.',consequences:'Users keep control of their models and maintain their own backups.',componentIds:['c0']}];m.nodes[0].decisionIds=['ADR-0001'];
+const views=m.namedViews.filter(v=>['solution','process','stakeholder'].includes(v.perspective));
+const settings={pack:true,title:'Customer Service Architecture',author:'Ian Tweedie',organisation:'Mightora',version:'1.0',date:'2026-10-19',confidentiality:'Illustrative example',rasterize:async svg=>(await sharp(Buffer.from(svg)).resize({width:1800}).png().toBuffer()).toString('base64')};
+(async()=>{fs.mkdirSync('artifacts/office',{recursive:true});fs.writeFileSync('artifacts/office/architecture-pack.docx',await O.docx(m,views,settings));fs.writeFileSync('artifacts/office/architecture-pack.pptx',await O.pptx(m,views,settings));fs.writeFileSync('artifacts/office/model.archmodel.json',P.canonical(m));console.log('Generated real DOCX/PPTX fixtures with production exporters.');})().catch(e=>{console.error(e);process.exitCode=1;});

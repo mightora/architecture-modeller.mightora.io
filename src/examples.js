@@ -15,7 +15,7 @@
   ];
   const n = (id, name, typeId, parentId = null, description = '', properties = {}) => ({ id, name, typeId, parentId, description, properties });
   const e = (id, source, target, typeId = 'depends', label = '') => ({ id, source, target, typeId, label, description: '' });
-  const example = { schemaVersion: 1, name: 'Connected service platform', types, relationshipTypes, views: {}, nodes: [
+  const example = { schemaVersion: 2, name: 'Connected service platform', types, relationshipTypes, views: {}, nodes: [
     n('pp', 'Power Platform', 'platform', null, 'A platform boundary containing applications, data and automation. Open it to explore the model.', { Owner: 'Digital services', Lifecycle: 'Live' }),
     n('azure', 'Azure', 'platform', null, 'Integration services and document storage.', { Owner: 'Cloud team', Lifecycle: 'Live' }),
     n('m365', 'Microsoft 365', 'platform', null, 'Collaboration, documents and notifications.'),
@@ -44,7 +44,7 @@
     e('e11', 'copilot', 'cases', 'reads'), e('e12', 'cases', 'function', 'depends', 'Document reference'),
     e('e13', 'pp', 'entra', 'auth', 'Platform sign-in'), e('e14', 'approvals', 'notify', 'calls')
   ] };
-  const product = { schemaVersion: 1, name: 'Online shop', types, relationshipTypes, views: {}, nodes: [
+  const product = { schemaVersion: 2, name: 'Online shop', types, relationshipTypes, views: {}, nodes: [
     n('shop', 'Shopfront', 'platform'), n('backoffice', 'Business operations', 'platform'), n('providers', 'External services', 'platform'),
     n('web', 'Store website', 'app', 'shop'), n('checkout', 'Checkout', 'app', 'shop'), n('catalog', 'Product catalogue', 'data', 'shop'),
     n('orders', 'Order service', 'service', 'backoffice'), n('warehouse', 'Warehouse', 'service', 'backoffice'), n('inventory', 'Stock database', 'data', 'backoffice'),

@@ -69,11 +69,11 @@ test('deleting a layer detaches memberships but retains components and named vie
 test('business Office packs preserve perspectives, editable layer bands and exact RACI roles', async () => {
   const m=business(),views=m.namedViews.filter(v=>v.perspective),before=JSON.stringify(m),z=await Zip.loadAsync(await O.pptx(m,views));
   assert.ok((await z.file('ppt/slides/slide3.xml').async('string')).includes('name="layer-presentation"'));
-  const notes=await z.file('ppt/notesSlides/notesSlide4.xml').async('string');
+  const notes=(await Promise.all(Object.keys(z.files).filter(p=>/^ppt\/notesSlides\/notesSlide\d+\.xml$/.test(p)).map(p=>z.file(p).async('string')))).join('');
   assert.ok(notes.includes('Accountable (A)')); assert.ok(notes.includes('Caseworker')); assert.ok(notes.includes('Perspective: traceability'));
   const png=fs.readFileSync(require('node:path').join(__dirname,'../assets/icons/dataverse.png')).toString('base64');
   const doc=await Zip.loadAsync(await O.docx(m,views,{rasterize:async()=>png})),xml=await doc.file('word/document.xml').async('string');
   for(const text of ['Accountable (A)','Responsible (R)','Presentation','User interfaces and channels','Layers (primary first)','Stakeholder responsibilities']) assert.ok(xml.includes(text),text);
-  assert.ok((await doc.file('word/media/view3.svg').async('string')).includes('Platform and identity'));
+  assert.ok((await Promise.all(Object.keys(doc.files).filter(p=>p.endsWith('.svg')).map(p=>doc.file(p).async('string')))).join('').includes('Platform and identity'));
   assert.equal(JSON.stringify(m),before);
 });

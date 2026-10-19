@@ -49,7 +49,7 @@ def validate_offline(html):
     assert 'renderGraph' not in select, 'Selecting a block replaces its double-click target'
 
 def main():
-    for source in ['core.js', 'dimensions.js', 'guidance.js', 'examples.js', 'formats.js', 'office.js', 'app.js', 'vscode-bridge.js']:
+    for source in ['core.js', 'dimensions.js', 'guidance.js', 'examples.js', 'formats.js', 'office.js', 'app.js', 'platform-ui.js', 'vscode-bridge.js']:
         subprocess.run(['node', '--check', str(ROOT / 'src' / source)], check=True)
     test = subprocess.run(['node', '--test', '--test-reporter=tap', *[str(p) for p in sorted((ROOT / 'tests').glob('*.test.cjs'))]], text=True, capture_output=True)
     if test.returncode:
@@ -61,11 +61,12 @@ def main():
     footer_details = json.loads(footer_check.stdout)
     DIST.mkdir(exist_ok=True); (DIST / 'downloads').mkdir(exist_ok=True)
     template = (ROOT / 'src/index.html').read_text()
+    template = template.replace('/*PLATFORM_SCRIPT*/', (ROOT/'.generated/platform.js').read_text().replace('</script', '<\\/script'))
     template = template.replace('<!--ICON_TERMS-->',(ROOT / 'src/icon-terms.html').read_text())
     template = template.replace('The application has no model-upload endpoint, analytics or telemetry.', 'The application has no model-upload endpoint. The public website uses Cloudflare Web Analytics to measure visits and performance; model content is not sent to the analytics service. The offline and VS Code editions block analytics connections.')
-    scripts = {name: (ROOT / 'src' / name).read_text().replace('</script', '<\\/script') for name in ['core.js', 'dimensions.js', 'guidance.js', 'examples.js', 'formats.js', 'office.js', 'app.js']}
+    scripts = {name: (ROOT / 'src' / name).read_text().replace('</script', '<\\/script') for name in ['core.js', 'dimensions.js', 'guidance.js', 'examples.js', 'formats.js', 'office.js', 'app.js', 'platform-ui.js']}
     styles = (ROOT / 'src/styles.css').read_text()
-    for token, name in [('CORE_SCRIPT', 'core.js'), ('DIMENSIONS_SCRIPT', 'dimensions.js'), ('GUIDANCE_SCRIPT', 'guidance.js'), ('EXAMPLE_SCRIPT', 'examples.js'), ('FORMATS_SCRIPT', 'formats.js'), ('OFFICE_SCRIPT', 'office.js'), ('APP_SCRIPT', 'app.js')]:
+    for token, name in [('CORE_SCRIPT', 'core.js'), ('DIMENSIONS_SCRIPT', 'dimensions.js'), ('GUIDANCE_SCRIPT', 'guidance.js'), ('EXAMPLE_SCRIPT', 'examples.js'), ('FORMATS_SCRIPT', 'formats.js'), ('OFFICE_SCRIPT', 'office.js'), ('APP_SCRIPT', 'app.js'), ('PLATFORM_UI_SCRIPT','platform-ui.js')]:
         template = template.replace(f'/*{token}*/', scripts[name])
     vendors = '\n;\n'.join(re.sub(r'//# sourceMappingURL=.*|//#sourceMappingURL=.*', '', (ROOT / 'assets' / n).read_text()) for n in ['js-yaml.min.js', 'jszip.min.js', 'pptxgen.bundle.js'])
     template = template.replace('/*VENDOR_SCRIPT*/', vendors.replace('</script', '<\\/script'))
@@ -84,6 +85,8 @@ def main():
     online = template.replace('<!--EDITION_HEAD-->', online_head).replace('<!--EDITION_LABEL-->', 'LOCAL MODEL PROCESSING')
     assert online.count('src="https://static.cloudflareinsights.com/beacon.min.js"') == 1
     (DIST / 'index.html').write_text(online)
+    (DIST / 'CNAME').write_text('architecture-modeller.mightora.io\n')
+    (DIST / '.nojekyll').write_text('')
     logo = 'data:image/png;base64,' + base64.b64encode((ROOT / 'assets/mightora-logo.png').read_bytes()).decode()
     offline_head = '''<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; font-src data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'; media-src 'none'">'''
     offline = template.replace('<!--EDITION_HEAD-->', offline_head).replace('<!--EDITION_LABEL-->', 'Offline Edition – No Internet Connection Required')
@@ -97,8 +100,9 @@ def main():
     offline = offline.replace('No installation · No model upload · Generated from the same maintained source', 'Offline Edition – No Internet Connection Required. Keep this HTML file and export model JSON to back up your work.')
     offline = offline.replace('href="./LICENSE"', 'href="data:text/plain;base64,' + base64.b64encode((ROOT / 'LICENSE').read_bytes()).decode() + '" download="LICENSE.txt"')
     offline = offline.replace('href="./downloads/mightora-architecture-modeller-source.zip" download id="source-badge"', 'href="#downloads" id="source-badge"').replace('<strong>Download</strong>', '<strong>In this HTML</strong>')
-    source_digest = hashlib.sha256(''.join(p.read_text() for p in sorted((ROOT / 'src').glob('*')) if p.is_file()).encode()).hexdigest()
-    report = { 'sourceSha256': source_digest, 'unitTests': { 'passed': total, 'failed': 0 }, 'javascriptSyntax': 'passed', 'offlineResourceAndCspChecks': 'passed', 'zipMatchesHtml': 'passed', 'sharedFooter': { 'source':'https://github.com/mightora/shared-ui/blob/main/footer.yaml', 'sha256':hashlib.sha256(footer_text.encode()).hexdigest(), **footer_details }, 'browserInteractionVerification': 'not run — browser-control skill unavailable in this environment', 'hosting': 'Cloudflare Pages, main branch', 'analytics': 'Single online-only Cloudflare beacon using existing mightora.io site token; CSP permits reporting; no beacon in offline/extension editions', 'codeQL': 'see GitHub workflow for actual result', 'note': 'These checks are not a security certification or a browser performance guarantee.' }
+    source_files_for_hash = sorted(p for folder in ['src','packages','vscode-extension/src'] for p in (ROOT/folder).rglob('*') if p.is_file())
+    source_digest = hashlib.sha256(b''.join(str(p.relative_to(ROOT)).encode()+b'\0'+p.read_bytes() for p in source_files_for_hash)).hexdigest()
+    report = { 'sourceSha256': source_digest, 'unitTests': { 'passed': total, 'failed': 0 }, 'javascriptSyntax': 'passed', 'offlineResourceAndCspChecks': 'passed', 'zipMatchesHtml': 'passed', 'sharedFooter': { 'source':'https://github.com/mightora/shared-ui/blob/main/footer.yaml', 'sha256':hashlib.sha256(footer_text.encode()).hexdigest(), **footer_details }, 'browserInteractionVerification': 'Not executed by the packaging command; see CI acceptance results and docs/verification.md', 'hosting': 'GitHub Pages, existing main branch workflow', 'analytics': 'Single online-only Cloudflare beacon using existing mightora.io site token; CSP permits reporting; no beacon in offline/extension editions', 'codeQL': 'see GitHub workflow for actual result', 'note': 'These checks are not a security certification or a browser performance guarantee.' }
     offline = offline.replace('href="./verification.json"', 'href="data:application/json;base64,' + base64.b64encode(json.dumps(report, indent=2).encode()).decode() + '" download="verification.json"')
     offline = offline.replace('<!doctype html>', '<!doctype html>\n<!-- Mightora Architecture Modeller. Copyright (c) 2026 Ian Tweedie / Mightora. MIT licence; see embedded licence link. -->', 1)
     validate_offline(offline)
@@ -133,11 +137,11 @@ Full source, maintenance instructions and GitHub workflows are in the separate s
     (DIST / 'robots.txt').write_text('User-agent: *\nAllow: /\n')
     (DIST / 'llms.txt').write_text('# Mightora Architecture Modeller\n\nFree configurable hierarchical architecture modelling. All diagram processing is local.\nFeatures: nested components; drill-down; mixed-level expansion; cross-level dependency links; custom modelling language; JSON, SVG and CSV export; offline HTML.\nNot an ArchiMate implementation. Single-user, one active model per browser.\n')
     source_files = {}
-    for folder in ['src', 'assets', 'scripts', 'tests', '.github', 'vscode-extension']:
+    for folder in ['src', 'assets', 'scripts', 'tests', '.github', 'vscode-extension', 'packages', 'tools', 'docs']:
         for f in sorted((ROOT / folder).rglob('*')):
             if f.is_file() and '__pycache__' not in str(f) and '/media/' not in str(f) and not f.name.endswith('.pyc'):
                 source_files[f'mightora-architecture-modeller/{f.relative_to(ROOT)}'] = f.read_bytes()
-    for name in ['README.md', 'LICENSE', 'package.json', 'MODEL_FORMAT.md', 'THIRD-PARTY-NOTICES.md', 'design-system.instructions.md', 'Shared-Development-Standards.md']:
+    for name in ['README.md', 'LICENSE', 'package.json', 'package-lock.json', 'tsconfig.json', 'playwright.config.cjs', 'MODEL_FORMAT.md', 'THIRD-PARTY-NOTICES.md', 'design-system.instructions.md', 'Shared-Development-Standards.md']:
         if (ROOT / name).exists(): source_files[f'mightora-architecture-modeller/{name}'] = (ROOT / name).read_bytes()
     source_files['mightora-architecture-modeller/offline/index.html'] = offpath.read_bytes()
     source_files['mightora-architecture-modeller/offline/README.txt'] = offline_readme.encode()

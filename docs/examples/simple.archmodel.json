@@ -1,0 +1,377 @@
+{
+  "decisions": [],
+  "description": "An illustrative architecture with shared technical, process and stakeholder viewpoints. Replace example ownership and assumptions before using it for a decision.",
+  "documentation": {
+    "Architecture principles": "Keep ownership explicit and minimise coupling.",
+    "Assumptions": "Illustrative design only.",
+    "Executive summary": "The example links the service to its supporting applications and accountable stakeholder.",
+    "Next steps": "Confirm requirements, security controls and operational ownership.",
+    "Scope and objectives": "Capture the main dependencies and business responsibilities."
+  },
+  "edges": [
+    {
+      "documentation": {
+        "Authentication": "OAuth 2.0",
+        "Communication": "Synchronous",
+        "Protocol": "HTTPS"
+      },
+      "id": "e0",
+      "label": "HTTPS",
+      "source": "c0",
+      "target": "c1",
+      "typeId": "calls"
+    },
+    {
+      "documentation": {
+        "Authentication": "OAuth 2.0",
+        "Communication": "Synchronous",
+        "Protocol": "HTTPS"
+      },
+      "id": "e1",
+      "label": "HTTPS",
+      "source": "c1",
+      "target": "c2",
+      "typeId": "calls"
+    },
+    {
+      "id": "responsibility",
+      "role": "A",
+      "source": "owner",
+      "target": "process",
+      "typeId": "participation"
+    },
+    {
+      "id": "support",
+      "source": "c0",
+      "target": "process",
+      "typeId": "supports"
+    }
+  ],
+  "id": "model_1ee992e7-b3d3-43d8-85ba-e9c1fa743290",
+  "name": "Simple web application",
+  "namedViews": [
+    {
+      "description": "Editable example view. Add classifications and filters to refine the scope.",
+      "expanded": [],
+      "focus": null,
+      "id": "view-solution",
+      "name": "Solution architecture",
+      "perspective": "solution",
+      "positions": {},
+      "relationshipTypeIds": null,
+      "showExternal": true
+    },
+    {
+      "description": "Editable example view. Add classifications and filters to refine the scope.",
+      "expanded": [],
+      "focus": null,
+      "id": "view-application",
+      "name": "Application architecture",
+      "perspective": "application",
+      "positions": {},
+      "relationshipTypeIds": null,
+      "showExternal": true
+    },
+    {
+      "description": "Editable example view. Add classifications and filters to refine the scope.",
+      "expanded": [],
+      "focus": null,
+      "id": "view-data",
+      "name": "Data architecture",
+      "perspective": "data",
+      "positions": {},
+      "relationshipTypeIds": null,
+      "showExternal": true
+    },
+    {
+      "description": "Editable example view. Add classifications and filters to refine the scope.",
+      "expanded": [],
+      "focus": null,
+      "id": "view-infrastructure",
+      "name": "Infrastructure architecture",
+      "perspective": "infrastructure",
+      "positions": {},
+      "relationshipTypeIds": null,
+      "showExternal": true
+    },
+    {
+      "description": "Editable example view. Add classifications and filters to refine the scope.",
+      "expanded": [],
+      "focus": null,
+      "id": "view-security",
+      "name": "Security architecture",
+      "perspective": "security",
+      "positions": {},
+      "relationshipTypeIds": null,
+      "showExternal": true
+    },
+    {
+      "description": "Editable example view. Add classifications and filters to refine the scope.",
+      "expanded": [
+        "process"
+      ],
+      "focus": null,
+      "id": "view-process",
+      "name": "Process architecture",
+      "perspective": "process",
+      "positions": {},
+      "relationshipTypeIds": null,
+      "showExternal": true
+    },
+    {
+      "description": "Editable example view. Add classifications and filters to refine the scope.",
+      "expanded": [],
+      "focus": null,
+      "id": "view-stakeholder",
+      "name": "Stakeholder architecture",
+      "perspective": "stakeholder",
+      "positions": {},
+      "relationshipTypeIds": null,
+      "showExternal": true
+    },
+    {
+      "description": "Editable example view. Add classifications and filters to refine the scope.",
+      "expanded": [],
+      "focus": null,
+      "id": "view-integration",
+      "name": "Integration architecture",
+      "perspective": "integration",
+      "positions": {},
+      "relationshipTypeIds": null,
+      "showExternal": true
+    },
+    {
+      "description": "Editable example view. Add classifications and filters to refine the scope.",
+      "expanded": [],
+      "focus": null,
+      "id": "view-deployment",
+      "name": "Deployment architecture",
+      "perspective": "deployment",
+      "positions": {},
+      "relationshipTypeIds": null,
+      "showExternal": true
+    },
+    {
+      "description": "Editable example view. Add classifications and filters to refine the scope.",
+      "expanded": [
+        "process"
+      ],
+      "focus": null,
+      "id": "view-traceability",
+      "name": "Traceability architecture",
+      "perspective": "traceability",
+      "positions": {},
+      "relationshipTypeIds": null,
+      "showExternal": true
+    }
+  ],
+  "nodes": [
+    {
+      "description": "Web application in the simple web application example. Review and replace this illustrative design.",
+      "documentation": {
+        "Classification": "Public",
+        "Environment": "Production",
+        "Purpose": "Illustrative component; adapt to your solution.",
+        "Support owner": "Example operations team"
+      },
+      "id": "c0",
+      "kind": "component",
+      "name": "Web application",
+      "parentId": null,
+      "properties": {
+        "Criticality": "Medium",
+        "Owner": "Example delivery team",
+        "Technology": "Web application"
+      },
+      "typeId": "app",
+      "viewpoints": [
+        "application",
+        "integration"
+      ]
+    },
+    {
+      "description": "API service in the simple web application example. Review and replace this illustrative design.",
+      "documentation": {
+        "Classification": "Public",
+        "Environment": "Production",
+        "Purpose": "Illustrative component; adapt to your solution.",
+        "Support owner": "Example operations team"
+      },
+      "id": "c1",
+      "kind": "component",
+      "name": "API service",
+      "parentId": null,
+      "properties": {
+        "Criticality": "Medium",
+        "Owner": "Example delivery team",
+        "Technology": "API service"
+      },
+      "typeId": "service",
+      "viewpoints": [
+        "application",
+        "integration"
+      ]
+    },
+    {
+      "description": "Customer database in the simple web application example. Review and replace this illustrative design.",
+      "documentation": {
+        "Classification": "Internal",
+        "Environment": "Production",
+        "Purpose": "Illustrative component; adapt to your solution.",
+        "Support owner": "Example operations team"
+      },
+      "id": "c2",
+      "kind": "component",
+      "name": "Customer database",
+      "parentId": null,
+      "properties": {
+        "Criticality": "Medium",
+        "Owner": "Example delivery team",
+        "Technology": "Customer database"
+      },
+      "typeId": "data",
+      "viewpoints": [
+        "data",
+        "application"
+      ]
+    },
+    {
+      "documentation": {
+        "Ownership classification": "Business owner",
+        "Responsibility": "Service outcomes"
+      },
+      "id": "owner",
+      "kind": "stakeholder",
+      "name": "Service owner",
+      "parentId": null,
+      "properties": {
+        "Organisation": "Example organisation",
+        "Role": "Accountable service owner"
+      },
+      "typeId": "business-stakeholder"
+    },
+    {
+      "description": "An example end-to-end business process.",
+      "documentation": {
+        "Capability": "Customer service",
+        "Inputs": "Customer request",
+        "Outputs": "Completed service",
+        "Risks": "Unclear hand-offs"
+      },
+      "id": "process",
+      "kind": "process",
+      "name": "Deliver customer service",
+      "parentId": null,
+      "properties": {
+        "Criticality": "High",
+        "Owner": "Service owner"
+      },
+      "swimlane": "Service team",
+      "typeId": "business-process"
+    },
+    {
+      "activityType": "decision",
+      "description": "Review and decide whether to proceed.",
+      "id": "step",
+      "kind": "process",
+      "name": "Review request",
+      "parentId": "process",
+      "properties": {
+        "Owner": "Service team"
+      },
+      "swimlane": "Service team",
+      "typeId": "business-process"
+    }
+  ],
+  "relationshipTypes": [
+    {
+      "color": "#059669",
+      "id": "calls",
+      "name": "calls",
+      "sourceTypes": [],
+      "style": "solid",
+      "targetTypes": []
+    },
+    {
+      "color": "#9333ea",
+      "id": "participation",
+      "name": "participates in",
+      "semantic": "participation",
+      "sourceTypes": [],
+      "style": "solid",
+      "targetTypes": []
+    },
+    {
+      "color": "#b45309",
+      "id": "sequence",
+      "name": "followed by",
+      "semantic": "sequence",
+      "sourceTypes": [],
+      "style": "solid",
+      "targetTypes": []
+    },
+    {
+      "color": "#0284c7",
+      "id": "supports",
+      "name": "supports",
+      "semantic": "supports",
+      "sourceTypes": [],
+      "style": "dashed",
+      "targetTypes": []
+    }
+  ],
+  "schemaVersion": 2,
+  "types": [
+    {
+      "color": "#059669",
+      "fields": [
+        "Owner",
+        "Technology",
+        "Criticality"
+      ],
+      "id": "app",
+      "name": "Application",
+      "shape": "rounded"
+    },
+    {
+      "color": "#b45309",
+      "fields": [
+        "Owner",
+        "Criticality"
+      ],
+      "id": "business-process",
+      "name": "Business process",
+      "shape": "rounded"
+    },
+    {
+      "color": "#9333ea",
+      "fields": [
+        "Organisation",
+        "Role"
+      ],
+      "id": "business-stakeholder",
+      "name": "Stakeholder",
+      "shape": "rounded"
+    },
+    {
+      "color": "#0284c7",
+      "fields": [
+        "Classification"
+      ],
+      "id": "data",
+      "name": "Data store",
+      "shape": "database"
+    },
+    {
+      "color": "#6366f1",
+      "fields": [
+        "Owner",
+        "Technology"
+      ],
+      "id": "service",
+      "name": "Service",
+      "shape": "rounded"
+    }
+  ],
+  "views": {}
+}

@@ -2,7 +2,7 @@
 (function(root) {
   'use strict';
   const kinds = ['component', 'process', 'stakeholder'];
-  const perspectives = ['solution', 'process', 'stakeholder', 'layers', 'traceability', 'all'];
+  const perspectives = ['solution', 'application', 'data', 'infrastructure', 'security', 'integration', 'deployment', 'custom', 'process', 'stakeholder', 'layers', 'traceability', 'all'];
   const roles = ['R', 'A', 'C', 'I'];
   const kind = n => n?.kind || 'component';
   const safeId = id => typeof id === 'string' && /^[A-Za-z0-9_-]{1,80}$/.test(id) && !['__proto__', 'constructor', 'prototype'].includes(id);
@@ -46,9 +46,13 @@
     const perspective = view.perspective || 'solution', processIds = processBranch(M, model, view.processId), included = new Set(), context = new Set();
     const processScope = n => kind(n) === 'process' && processIds.has(n.id);
     for (const n of model.nodes) {
-      const k = kind(n); let keep = perspective === 'all' || (['solution', 'layers'].includes(perspective) && k === 'component') || (['process', 'stakeholder', 'traceability'].includes(perspective) && processScope(n));
+      const k = kind(n); let keep = perspective === 'all' || (['solution', 'application', 'data', 'infrastructure', 'security', 'integration', 'deployment', 'custom', 'layers'].includes(perspective) && k === 'component') || (['process', 'stakeholder', 'traceability'].includes(perspective) && processScope(n));
       if (perspective === 'stakeholder' && k === 'stakeholder' && !view.processId) keep = true;
       if (keep && k === 'component' && view.layerIds != null) keep = view.layerIds.length ? (n.layerIds || []).some(id => view.layerIds.includes(id)) : !(n.layerIds || []).length;
+      if (keep && ['application','data','infrastructure','security','integration','deployment'].includes(perspective) && n.viewpoints?.length) keep = n.viewpoints.includes(perspective);
+      if (keep && view.includedIds != null) keep = view.includedIds.includes(n.id);
+      if (keep && view.typeIds != null) keep = view.typeIds.includes(n.typeId);
+      if (view.hiddenIds?.includes(n.id)) keep = false;
       if (keep) included.add(n.id);
     }
     const semantic = e => model.relationshipTypes.find(t => t.id === e.typeId)?.semantic;
@@ -71,6 +75,11 @@
     projected.perspective = perspective; return projected;
   }
   function layout(M, model, projection, view, positions = {}) {
+    if (view.swimlanes && ['process','stakeholder','traceability'].includes(view.perspective)) {
+      const lanes = [...new Set(projection.nodes.map(n=>n.swimlane || 'Unassigned'))], bands=[], nodes=[];let y=30;
+      for(const lane of lanes){ const members=projection.nodes.filter(n=>(n.swimlane||'Unassigned')===lane), h=80+Math.ceil(members.length/3)*170;bands.push({id:'lane-'+bands.length,name:lane,description:'Process swimlane',color:'#059669',x:30,y,w:1030,h});members.forEach((n,i)=>nodes.push({...n,x:positions[n.id]?.x??55+(i%3)*335,y:positions[n.id]?.y??y+65+Math.floor(i/3)*170,w:252,h:124,expanded:false,parentVisible:null}));y+=h+30;}
+      return {nodes,bands,width:1100,height:Math.max(470,y)};
+    }
     if ((view.perspective || 'solution') !== 'layers') return M.layout(projection, positions);
     const layers = [...(model.layers || []), { id: null, name: 'Unassigned', description: 'Components without an application layer', color: '#64748b' }];
     const bands = [], nodes = []; let y = 30;

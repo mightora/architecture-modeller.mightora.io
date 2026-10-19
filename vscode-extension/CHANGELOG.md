@@ -1,13 +1,15 @@
 # Changelog
 
+## 0.6.0
+
+- Versioned model schema, structured documentation, source links and ADRs.
+- Configurable governance rules and native Problems diagnostics.
+- Model outline, component search and viewpoint commands.
+- Local Word/PowerPoint design packs with native text, tables and editable presentation diagrams.
+- Native save/undo adapters and validated webview message payloads.
+- Strict TypeScript browser-compatible extension bundle and real VS Code Web host acceptance suite.
+- Shared editor improvements, reusable patterns, comparison and impact analysis.
+
 ## 0.5.0
 
-- Eight-step first-model guide, worked customer-request example, glossary and model review prompts.
-- Searchable 44-icon catalog spanning official Microsoft Power Platform, Azure, AWS and general Lucide symbols.
-- Product-source attribution in exports; model question and scope retained in JSON/YAML and Office reports.
-
-## 0.4.0
-
-- Initial web and desktop VS Code extension using the shared modeller.
-- Workspace JSON/YAML custom editors, file exports and version-aware document synchronization.
-- Architecture, process, stakeholder, layer and traceability views with Word and PowerPoint export.
+First-model guidance, model review prompts and curated architecture icon collections.
