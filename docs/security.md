@@ -10,7 +10,7 @@ The offline edition embeds application code, styles, logo and icon bytes. Its re
 
 The VS Code webview has no remote resource roots and a per-view nonce CSP. Messages have allowed operation types, bounded payloads and document-version checks. Mutation text is parsed/validated in the host before WorkspaceEdit. Export paths are chosen by the user in VS Code; model content cannot nominate arbitrary filesystem writes. Local source navigation is confined to a workspace-relative target. No GitHub credentials are embedded.
 
-Browser recovery storage is local to the origin/device and not encrypted by this application. Browser profile access exposes it. Export backups and choose appropriate file protections for sensitive designs. The app has no accounts or collaboration server. Website analytics retain the existing implementation and can be blocked by relevant browser privacy controls; offline/extension editions do not load the beacon.
+Local and tab-session recovery storage is local to the origin/device and not encrypted by this application. Browser profile access exposes it. Export backups and choose appropriate file protections for sensitive designs. The app has no accounts or collaboration server. Website analytics retain the existing implementation and can be blocked by relevant browser privacy controls; offline/extension editions do not load the beacon.
 
 Bundled YAML, ZIP and PowerPoint libraries are pinned in the lockfile and matched byte-for-byte against installed packages by `verify:vendors`. The YAML parser is 5.5.0; a pinned image-size 2.0.4 override removes known vulnerable tooling dependencies.
 

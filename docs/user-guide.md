@@ -6,7 +6,7 @@ The model is the architecture knowledge. A view selects how to display that know
 
 **New model** creates a blank graph after a replacement confirmation. **Import** accepts JSON, YAML, YML and YAML-formatted TXT. Imports are validated before replacing your model. **Save model** writes/downloads a `.archmodel.json` file. **Save as** chooses a new destination. Reopen using Import, or a VS Code Custom Editor.
 
-The website keeps an immediate local-storage recovery copy. The Model library uses IndexedDB for several models and five prior revisions. Changes to the active model create recovery revisions after a short debounce. Export portable files before clearing browser data or switching devices. Private browsing, storage quotas and `file://` policies can limit recovery. A warning explains save failures.
+The website keeps immediate local-storage and tab-session recovery copies. Session recovery is preferred within the same tab after a fast refresh; the local copy also survives reopening the browser. The Model library uses IndexedDB for several models and five prior revisions. Changes to the active model create recovery revisions after a short debounce. Export portable files before clearing browser data or switching devices. Private browsing, storage quotas and `file://` policies can limit recovery. A warning explains save failures.
 
 ## Canvas
 

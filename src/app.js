@@ -14,12 +14,19 @@
   const perspectiveNames = { application:'Application architecture',data:'Data architecture',infrastructure:'Infrastructure architecture',security:'Security architecture',integration:'Integration architecture',deployment:'Deployment architecture',custom:'Custom viewpoint', solution: 'Solution architecture', process: 'Business processes', stakeholder: 'Stakeholder responsibilities', layers: 'Application layers', traceability: 'Business traceability', all: 'All entities' };
   function viewSpec() { return { focus, expanded: [...expanded], relationshipTypeIds, showExternal, perspective, processId, layerIds: selectedLayerIds, ...viewExtras }; }
   function changePerspective(value) { viewExtras = {}; perspective = value; focus = null; selected = null; expanded = new Set(); processId = null; selectedLayerIds = null; camera = null; viewPositions = null; activeNamedView = null; render(); }
-  if (!HOST) try { const saved = localStorage.getItem(STORAGE); if (saved) model = M.parse(saved); } catch (e) { initialWarning = `Saved model could not be loaded: ${e.message} The example is shown. Your stored file has not been overwritten.`; saveFailure = initialWarning; }
+  if (!HOST) {
+    let recovered=false, failure='';
+    for(const storeName of ['sessionStorage','localStorage'])try{const saved=window[storeName].getItem(STORAGE);if(saved){try{model=M.parse(saved);recovered=true;break;}catch(error){failure=error.message;}}}catch(error){/* File URL storage is browser-dependent; another recovery adapter can still work. */}
+    if(!recovered&&failure){initialWarning=`Saved model could not be loaded: ${failure} The example is shown. Your stored file has not been overwritten.`;saveFailure=initialWarning;}
+  }
   function toast(message) { clearTimeout(toastTimer); el('toast').textContent = message; el('toast').hidden = false; toastTimer = setTimeout(() => { el('toast').hidden = true; }, 6500); }
   function persist() {
     if (HOST) { HOST.save(model); return; }
-    try { localStorage.setItem(STORAGE, JSON.stringify(model)); saveFailure = ''; el('save-state').textContent = 'Saved in this browser · ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); }
-    catch (_) { saveFailure = 'Browser storage unavailable or full. Export JSON to keep your changes.'; el('save-state').textContent = saveFailure; toast(saveFailure); }
+    const serialized=JSON.stringify(model);let savedLocal=false,savedSession=false;
+    try{localStorage.setItem(STORAGE,serialized);savedLocal=true;}catch{}
+    try{sessionStorage.setItem(STORAGE,serialized);savedSession=true;}catch{}
+    if(savedLocal||savedSession){saveFailure='';el('save-state').textContent=(savedLocal?'Saved in this browser':'Saved for recovery in this tab')+' · '+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});}
+    else{saveFailure='Browser recovery storage unavailable or full. Export JSON to keep your changes.';el('save-state').textContent=saveFailure;toast(saveFailure);}
   }
   function commit(next, message = 'Model updated', resetView = false, replaceModel = false) {
     if (HOST && !HOST.canEdit()) throw new Error('Wait for the workspace document, or resolve the file conflict. Export JSON to preserve canvas changes before reopening.');
